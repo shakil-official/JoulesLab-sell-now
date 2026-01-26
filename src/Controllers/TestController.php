@@ -18,9 +18,20 @@ class TestController extends Controller
     {
         $name = $request->input('name');
 
+        Product::create([
+            'user_id' => 1,
+            'title' => 'test',
+            'slug' => 'test',
+            'description' => 'this is test',
+            'price' => 23,
+            'image_path' => 'hello/hh.png',
+            'file_path' => 'hello/hh.png',
+            'is_active' => 1
+        ]);
+
         $data = Product::query()
             ->where([
-                'product_id' => 2
+
             ])->get();
 
         echo '<pre>';

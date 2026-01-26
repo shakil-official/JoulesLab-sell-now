@@ -43,6 +43,7 @@ abstract class Model
      * ->where('column', 'value')
      * ->where('column', '>', 'value')
      * ->where(['col1' => 'val1', 'col2' => 'val2'])
+     * @throws Exception
      */
     public function where(...$args): static
     {
@@ -127,13 +128,16 @@ abstract class Model
     }
 
     // shortcut for all records
+
+    /**
+     * @throws Exception
+     */
     public static function all(): array
     {
         return static::query()->get();
     }
 
     // find by primary key (assuming 'id')
-
     /**
      * @throws Exception
      */
@@ -141,4 +145,60 @@ abstract class Model
     {
         return static::query()->where('id', $id)->first();
     }
+
+    /**
+     * @throws Exception
+     */
+    public static function create(array $attributes): ?array
+    {
+        if (empty($attributes)) {
+            throw new Exception("No data provided for create");
+        }
+
+        $instance = new static();
+        return $instance->performInsert($attributes);
+    }
+
+
+    /**
+     * @throws Exception
+     */
+    protected function performInsert(array $attributes): ?array
+    {
+        $columns      = array_keys($attributes);
+        $placeholders = array_fill(0, count($columns), '?');
+        $values       = array_values($attributes);
+
+        $table = $this->getTable();
+
+        $sql = "INSERT INTO {$table} 
+                (" . implode(', ', $columns) . ") 
+                VALUES (" . implode(', ', $placeholders) . ")";
+
+        $stmt = static::$db->prepare($sql);
+
+        if (!$stmt->execute($values)) {
+            return null;
+        }
+
+        $lastId = static::$db->lastInsertId();
+
+
+//        if ($lastId && $lastId !== '0' && $lastId !== '') {
+//            return static::find((int)$lastId);
+//        }
+
+        return $attributes;
+    }
+
+
+    protected function getTable(): string
+    {
+        if (empty($this->table)) {
+            $className = (new \ReflectionClass($this))->getShortName();
+            $this->table = strtolower($className) . 's';
+        }
+        return $this->table;
+    }
+
 }
