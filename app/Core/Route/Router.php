@@ -2,20 +2,32 @@
 
 namespace App\Core\Route;
 
+use App\Core\View\View;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+
 class Router
 {
     protected array $routes = [];
+    protected View $view;
+
+    public function __construct(View $view)
+    {
+        $this->view = $view;
+    }
 
     public function register(
         string $httpMethod,
         string $uri,
         string $controller,
         string $action
-    ): void {
+    ): void
+    {
         $this->routes[$httpMethod][] = [
-            'pattern'    => $this->toRegex($uri),
+            'pattern' => $this->toRegex($uri),
             'controller' => $controller,
-            'action'     => $action,
+            'action' => $action,
         ];
     }
 
@@ -25,10 +37,15 @@ class Router
         return '#^' . $pattern . '$#';
     }
 
+    /**
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
     public function dispatch(Request $request): void
     {
         $method = $request->method();
-        $uri    = $request->uri();
+        $uri = $request->uri();
 
         foreach ($this->routes[$method] ?? [] as $route) {
             if (preg_match($route['pattern'], $uri, $matches)) {
@@ -46,6 +63,6 @@ class Router
         }
 
         http_response_code(404);
-        echo '404 Route Not Found';
+        $this->view->render("errors/404");
     }
 }

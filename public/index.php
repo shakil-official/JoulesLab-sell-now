@@ -8,6 +8,11 @@ use Twig\Environment;
 
 session_start();
 
+// Basic Twig Setup (Global-ish)
+$loader = new FilesystemLoader(__DIR__ . '/../templates');
+$twig = new Environment($loader, ['debug' => true]);
+$twig->addGlobal('session', $_SESSION);
+
 
 /*
  *  Route Bootstrapping
@@ -16,8 +21,11 @@ session_start();
 use App\Core\Route\Router;
 use App\Core\Route\Route;
 use App\Core\Route\Request;
+use App\Core\View\View;
 
-$router = new Router();
+$view = new View($twig);
+
+$router = new Router($view);
 Route::init($router);
 
 require __DIR__ . '/../src/Routes/web.php';
@@ -25,10 +33,7 @@ require __DIR__ . '/../src/Routes/web.php';
 $router->dispatch(new Request());
 
 
-// Basic Twig Setup (Global-ish)
-$loader = new FilesystemLoader(__DIR__ . '/../templates');
-$twig = new Environment($loader, ['debug' => true]);
-$twig->addGlobal('session', $_SESSION);
+
 
 // Database Connection
 $db = Database::getInstance()->getConnection();
