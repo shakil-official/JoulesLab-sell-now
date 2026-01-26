@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use App\Core\Database\Model;
 use SellNow\Config\Database;
 use Twig\Loader\FilesystemLoader;
 use Twig\Environment;
@@ -23,6 +24,10 @@ use App\Core\Route\Route;
 use App\Core\Route\Request;
 use App\Core\View\View;
 
+Model::setConnection(
+    Database::getInstance()->getConnection()
+);
+
 $view = new View($twig);
 
 $router = new Router($view);
@@ -30,9 +35,11 @@ Route::init($router);
 
 require __DIR__ . '/../src/Routes/web.php';
 
-$router->dispatch(new Request());
+try {
+    $router->dispatch(new Request());
+} catch (\Twig\Error\LoaderError|\Twig\Error\RuntimeError|\Twig\Error\SyntaxError $e) {
 
-
+}
 
 
 // Database Connection
