@@ -52,7 +52,9 @@ class Router
 
                 array_shift($matches);
 
-                $controller = new $route['controller'];
+                //var_dump($route);
+                //$controller = new $route['controller']; // old one
+                $controller = new $route['controller']($this->view);
 
                 call_user_func_array(
                     [$controller, $route['action']],
