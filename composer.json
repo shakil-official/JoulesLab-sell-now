@@ -9,7 +9,9 @@
     },
     "autoload": {
         "psr-4": {
-            "SellNow\\": "src/"
+            "SellNow\\": "src/",
+            "App\\": "app/",
+            "App\\Controllers\\": "src/Controllers/"
         }
     },
     "authors": [

@@ -8,6 +8,23 @@ use Twig\Environment;
 
 session_start();
 
+
+/*
+ *  Route Bootstrapping
+ */
+
+use App\Core\Route\Router;
+use App\Core\Route\Route;
+use App\Core\Route\Request;
+
+$router = new Router();
+Route::init($router);
+
+require __DIR__ . '/../src/Routes/web.php';
+
+$router->dispatch(new Request());
+
+
 // Basic Twig Setup (Global-ish)
 $loader = new FilesystemLoader(__DIR__ . '/../templates');
 $twig = new Environment($loader, ['debug' => true]);
