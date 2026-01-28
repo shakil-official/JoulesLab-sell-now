@@ -47,4 +47,8 @@ class User extends Model implements Authenticatable
         return $user;
     }
 
+    public function getUsername()
+    {
+        return $this->username;
+    }
 }

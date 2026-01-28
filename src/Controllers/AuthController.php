@@ -124,14 +124,4 @@ class AuthController extends Controller
             'success' => 'Registered successfully. Please login.'
         ]);
     }
-
-    public function dashboard()
-    {
-        if (!isset($_SESSION['user_id']))
-            header("Location: /login");
-
-        echo $this->twig->render('dashboard.html.twig', [
-            'username' => $_SESSION['username']
-        ]);
-    }
 }

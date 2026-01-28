@@ -12,4 +12,6 @@ interface Authenticatable
     public function getAuthId();
 
     public function getAuthPassword();
+
+    public function getUsername();
 }

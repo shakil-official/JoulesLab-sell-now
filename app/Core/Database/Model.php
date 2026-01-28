@@ -137,14 +137,17 @@ abstract class Model
         return static::query()->get();
     }
 
-    // find by primary key (assuming 'id')
+
     /**
      * @throws Exception
      */
-    public static function find(int $id): ?array
+    public static function find(int $id, $select = ['*'], $key = 'id'): ?array
     {
-        return static::query()->where('id', $id)->first();
+        $instance = static::query();
+
+        return $instance->select($select)->where($key, $id)->first();
     }
+
 
     /**
      * @throws Exception
@@ -165,9 +168,9 @@ abstract class Model
      */
     protected function performInsert(array $attributes): ?array
     {
-        $columns      = array_keys($attributes);
+        $columns = array_keys($attributes);
         $placeholders = array_fill(0, count($columns), '?');
-        $values       = array_values($attributes);
+        $values = array_values($attributes);
 
         $table = $this->getTable();
 

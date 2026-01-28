@@ -58,38 +58,12 @@ function redirect($url)
 
 // Router
 switch ($uri) {
-    case '/_____':
-        echo $twig->render('layouts/base.html.twig', ['content' => "<h1>Welcome</h1><a href='/login'>Login</a>"]);
-        break;
-
-    case '/login/_____':
-        require_once __DIR__ . '/../src/Controllers/AuthController.php';
-        $auth = new \SellNow\Controllers\AuthController($twig, $db);
-        if ($method === 'POST')
-            $auth->login();
-        else
-            $auth->loginForm();
-        break;
-
-    case '/register/_____':
-        require_once __DIR__ . '/../src/Controllers/AuthController.php';
-        $auth = new \SellNow\Controllers\AuthController($twig, $db);
-        if ($method === 'POST')
-            $auth->register();
-        else
-            $auth->registerForm();
-        break;
 
     case '/logout':
         session_destroy();
         redirect('/');
         break;
 
-    case '/daaashboard/_____':
-        require_once __DIR__ . '/../src/Controllers/AuthController.php';
-        $auth = new \SellNow\Controllers\AuthController($twig, $db);
-        $auth->dashboard();
-        break;
 
     case '/products/add':
         require_once __DIR__ . '/../src/Controllers/ProductController.php';

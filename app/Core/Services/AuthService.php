@@ -42,20 +42,24 @@ class AuthService
 
         $_SESSION['auth'] = [
             'model' => $model,
-            'id'    => $user->getAuthId(),
+            'id' => $user->getAuthId(),
+            'username' => $user->getUsername(),
         ];
 
         return true;
     }
 
-    public static function user(): ?object
+    public static function user()
     {
         if (!isset($_SESSION['auth'])) {
             return null;
         }
 
         $model = $_SESSION['auth']['model'];
-        return $model::find($_SESSION['auth']['id']);
+
+        return $model::find($_SESSION['auth']['id'], [
+            'username', 'email'
+        ]);
     }
 
     public static function logout(): void

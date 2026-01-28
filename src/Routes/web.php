@@ -31,5 +31,10 @@ Route::post()
 
 Route::get()
     ->url('/dashboard')
-    ->controller(\SellNow\Controllers\AuthController::class)
-    ->method('dashboard');
+    ->controller(\SellNow\Controllers\DashboardController::class)
+    ->method('index');
+
+Route::get()
+    ->url('/products/add')
+    ->controller(\SellNow\Controllers\ProductController::class)
+    ->method('index');
