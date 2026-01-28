@@ -69,3 +69,8 @@ Route::get()
     ->url('/products')
     ->controller(PublicController::class)
     ->method('profile');
+
+Route::get()
+    ->url('/logout')
+    ->controller(AuthController::class)
+    ->method('logout');

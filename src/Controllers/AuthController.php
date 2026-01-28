@@ -9,6 +9,7 @@ use App\Core\Services\AuthService;
 use Exception;
 use JetBrains\PhpStorm\NoReturn;
 use SellNow\Models\User;
+use SellNow\Services\Cart\CartService;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -124,4 +125,18 @@ class AuthController extends Controller
             'success' => 'Registered successfully. Please login.'
         ]);
     }
+
+
+    #[NoReturn]
+    public function logout(): void
+    {
+        AuthService::logout();
+        CartService::clear();
+
+        Helper::redirect('/', [
+            'success' => 'Logout successfully. Please login.'
+        ]);
+
+    }
+
 }

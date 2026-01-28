@@ -8,6 +8,7 @@ use Exception;
 class AuthService
 {
     protected static string $model;
+    private const SESSION_KEY = 'auth';
 
     /**
      * @throws Exception
@@ -31,8 +32,6 @@ class AuthService
             return false;
         }
 
-//        var_dump($user->getAuthPassword());
-//        die();
 
         if (!password_verify($credentials['password'], $user->getAuthPassword())) {
             return false;
@@ -40,9 +39,10 @@ class AuthService
 
         session_regenerate_id(true);
 
-        $_SESSION['auth'] = [
+        $_SESSION[self::SESSION_KEY] = [
             'model' => $model,
             'id' => $user->getAuthId(),
+            'user_id' => $user->getAuthId(),
             'username' => $user->getUsername(),
         ];
 
@@ -51,25 +51,28 @@ class AuthService
 
     public static function user()
     {
-        if (!isset($_SESSION['auth'])) {
+        if (!isset($_SESSION[self::SESSION_KEY])) {
             return null;
         }
 
-        $model = $_SESSION['auth']['model'];
+        $model = $_SESSION[self::SESSION_KEY]['model'];
 
-        return $model::find($_SESSION['auth']['id'], [
+        return $model::find($_SESSION[self::SESSION_KEY]['id'], [
             'username', 'email', 'id'
         ]);
     }
 
     public static function logout(): void
     {
-        session_destroy();
+        if (isset($_SESSION[self::SESSION_KEY])) {
+            unset($_SESSION[self::SESSION_KEY]);
+        }
+        session_regenerate_id(true); // prevent fixation
     }
 
     public static function userId()
     {
-        return $_SESSION['auth']['id'];
+        return $_SESSION[self::SESSION_KEY]['id'];
     }
 
 }

@@ -64,11 +64,20 @@ class CartService
             ];
         }
 
+        $_SESSION['cart_count'] = count($_SESSION['cart']);
+
         return [
             'status' => 'success',
             'count' => count($_SESSION['cart']),
             'cart' => $_SESSION['cart']
         ];
+    }
+
+
+    public static function clear(): void
+    {
+        unset($_SESSION['cart']);
+        $_SESSION['cart_count'] = 0;
     }
 
 }

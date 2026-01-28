@@ -4,6 +4,9 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use App\Core\Database\Model;
 use SellNow\Config\Database;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 use Twig\Loader\FilesystemLoader;
 use Twig\Environment;
 
@@ -37,7 +40,7 @@ require __DIR__ . '/../src/Routes/web.php';
 
 try {
     $router->dispatch(new Request());
-} catch (\Twig\Error\LoaderError|\Twig\Error\RuntimeError|\Twig\Error\SyntaxError $e) {
+} catch (LoaderError|RuntimeError|SyntaxError $e) {
 
 }
 
@@ -49,12 +52,7 @@ $db = Database::getInstance()->getConnection();
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Simple helper for redirection
-function redirect($url)
-{
-    header("Location: $url");
-    exit;
-}
+
 
 // Router
 //switch ($uri) {

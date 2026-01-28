@@ -2,11 +2,11 @@
 
 namespace SellNow\Controllers;
 
+use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
 use App\Core\Route\Request;
 use Exception;
 use JetBrains\PhpStorm\NoReturn;
-use SellNow\Models\Product;
 use SellNow\Services\Cart\CartService;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -40,8 +40,8 @@ class CartController extends Controller
     #[NoReturn]
     public function add(Request $request): void
     {
-        $productId = (int) $request->input('product_id');
-        $quantity  = (int) $request->input('quantity', 1);
+        $productId = (int)$request->input('product_id');
+        $quantity = (int)$request->input('quantity', 1);
 
         $result = CartService::add($productId, $quantity);
 
@@ -50,10 +50,13 @@ class CartController extends Controller
         exit;
     }
 
-    public function clear()
+    #[NoReturn]
+    public function clear(): void
     {
-        unset($_SESSION['cart']);
-        header("Location: /cart");
-        exit;
+        CartService::clear();
+
+        Helper::redirect('/cart', [
+            'success' => 'Cart cleared successfully'
+        ]);
     }
 }
