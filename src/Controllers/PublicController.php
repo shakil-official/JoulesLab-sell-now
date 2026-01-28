@@ -2,36 +2,34 @@
 
 namespace SellNow\Controllers;
 
-class PublicController
+use App\Core\Config\Helper;
+use App\Core\Controller\Controller;
+use App\Core\Route\Request;
+use App\Core\Services\AuthService;
+use Exception;
+use SellNow\Models\Product;
+
+class PublicController extends Controller
 {
-    private $twig;
-    private $db;
-
-    public function __construct($twig, $db)
+    /**
+     * @throws Exception
+     */
+    public function profile(Request $request): void
     {
-        $this->twig = $twig;
-        $this->db = $db;
-    }
-
-    public function profile($username)
-    {
-        // Raw SQL to find user
-        // Imperfect: Inefficient separate queries
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE username = :u");
-        $stmt->execute(['u' => $username]);
-        $user = $stmt->fetch(\PDO::FETCH_OBJ);
+        $user = AuthService::user();
 
         if (!$user) {
-            echo "User not found";
-            return;
+            Helper::redirect('/', [
+                'error' => 'You must be logged in to view this page'
+            ]);
         }
 
-        // Raw SQL to find products
-        // Imperfect: SQL Injection possible if $user->id was tainted? (It's not here but shows intent)
-        $pStmt = $this->db->query("SELECT * FROM products WHERE user_id = $user->id");
-        $products = $pStmt->fetchAll(\PDO::FETCH_ASSOC);
+        $products = Product::query()
+            ->where([
+                'user_id' => $user['id']
+            ])->get();
 
-        echo $this->twig->render('public/profile.html.twig', [
+        $this->render('public/profile', [
             'seller' => $user,
             'products' => $products
         ]);

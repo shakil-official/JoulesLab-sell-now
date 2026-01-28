@@ -3,6 +3,11 @@
 
 use App\Controllers\TestController;
 use App\Core\Route\Route;
+use SellNow\Controllers\AuthController;
+use SellNow\Controllers\CartController;
+use SellNow\Controllers\DashboardController;
+use SellNow\Controllers\ProductController;
+use SellNow\Controllers\PublicController;
 
 Route::get()
     ->url('/test')
@@ -11,30 +16,56 @@ Route::get()
 
 Route::get()
     ->url('/')
-    ->controller(\SellNow\Controllers\AuthController::class)
+    ->controller(AuthController::class)
     ->method('loginView');
 
 Route::post()
     ->url('/login')
-    ->controller(\SellNow\Controllers\AuthController::class)
+    ->controller(AuthController::class)
     ->method('login');
 
 Route::get()
     ->url('/register')
-    ->controller(\SellNow\Controllers\AuthController::class)
+    ->controller(AuthController::class)
     ->method('registerForm');
 
 Route::post()
     ->url('/register')
-    ->controller(\SellNow\Controllers\AuthController::class)
+    ->controller(AuthController::class)
     ->method('register');
 
 Route::get()
     ->url('/dashboard')
-    ->controller(\SellNow\Controllers\DashboardController::class)
+    ->controller(DashboardController::class)
     ->method('index');
 
 Route::get()
     ->url('/products/add')
-    ->controller(\SellNow\Controllers\ProductController::class)
+    ->controller(ProductController::class)
     ->method('index');
+
+Route::post()
+    ->url('/products/add')
+    ->controller(ProductController::class)
+    ->method('store');
+
+Route::post()
+    ->url('/cart/add')
+    ->controller(CartController::class)
+    ->method('add');
+
+
+Route::get()
+    ->url('/cart')
+    ->controller(CartController::class)
+    ->method('index');
+
+Route::get()
+    ->url('/cart/clear')
+    ->controller(CartController::class)
+    ->method('clear');
+
+Route::get()
+    ->url('/products')
+    ->controller(PublicController::class)
+    ->method('profile');

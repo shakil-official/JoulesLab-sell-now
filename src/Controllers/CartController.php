@@ -2,18 +2,25 @@
 
 namespace SellNow\Controllers;
 
-class CartController
+use App\Core\Controller\Controller;
+use App\Core\Route\Request;
+use Exception;
+use JetBrains\PhpStorm\NoReturn;
+use SellNow\Models\Product;
+use SellNow\Services\Cart\CartService;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+
+class CartController extends Controller
 {
-    private $twig;
-    private $db;
 
-    public function __construct($twig, $db)
-    {
-        $this->twig = $twig;
-        $this->db = $db;
-    }
-
-    public function index()
+    /**
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
+    public function index(): void
     {
         $cart = $_SESSION['cart'] ?? [];
         $total = 0;
@@ -21,36 +28,25 @@ class CartController
             $total += $item['price'] * $item['quantity'];
         }
 
-        echo $this->twig->render('cart/index.html.twig', [
+        $this->render('cart/index', [
             'cart' => $cart,
             'total' => $total
         ]);
     }
 
-    public function add()
+    /**
+     * @throws Exception
+     */
+    #[NoReturn]
+    public function add(Request $request): void
     {
-        $id = $_POST['product_id'];
-        $quantity = $_POST['quantity'];
+        $productId = (int) $request->input('product_id');
+        $quantity  = (int) $request->input('quantity', 1);
 
-        // Raw DB call
-        $stmt = $this->db->prepare("SELECT * FROM products WHERE product_id = ?");
-        $stmt->execute([$id]);
-        $product = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$product) {
-            echo json_encode(['status' => 'error']);
-            exit;
-        }
-
-        $_SESSION['cart'][] = [
-            'product_id' => $product['product_id'],
-            'title' => $product['title'],
-            'price' => $product['price'],
-            'quantity' => $quantity
-        ];
+        $result = CartService::add($productId, $quantity);
 
         header('Content-Type: application/json');
-        echo json_encode(['status' => 'success', 'count' => count($_SESSION['cart'])]);
+        echo json_encode($result);
         exit;
     }
 

@@ -1,24 +1,36 @@
 {% extends "layouts/base.html.twig" %}
 
 {% block content %}
-<h2>Sell a New Product</h2>
-<form action="/products/add" method="POST" enctype="multipart/form-data">
-    <div class="mb-3">
-        <label>Title</label>
-        <input type="text" name="title" class="form-control" required>
+
+
+    <div class="d-flex justify-content-center align-items-center vh-100">
+        <div class="col-md-6">
+
+            <h2 class="text-center mb-4">Sell a New Product</h2>
+
+            <form action="/products/add" method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="title">Title</label>
+                    <input type="text" name="title" class="form-control" required value="{{ old.title }}" id="title">
+                </div>
+
+                <div class="mb-3">
+                    <label for="price">Price ($)</label>
+                    <input type="number" step="0.01" name="price" class="form-control" required value="{{ old.price }}" id="price">
+                </div>
+
+                <div class="mb-3">
+                    <label for="image">Cover Image</label>
+                    <input type="file" name="image" class="form-control" accept="image/*" id="image">
+                </div>
+
+                <div class="mb-3">
+                    <label for="product_file">Product File (content to sell)</label>
+                    <input type="file" name="product_file" class="form-control" required id="product_file">
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Create Product</button>
+            </form>
+        </div>
     </div>
-    <div class="mb-3">
-        <label>Price ($)</label>
-        <input type="number" step="0.01" name="price" class="form-control" required>
-    </div>
-    <div class="mb-3">
-        <label>Cover Image</label>
-        <input type="file" name="image" class="form-control" accept="image/*">
-    </div>
-    <div class="mb-3">
-        <label>Product File (content to sell)</label>
-        <input type="file" name="product_file" class="form-control" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Create Product</button>
-</form>
 {% endblock %}

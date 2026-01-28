@@ -58,7 +58,7 @@ class AuthService
         $model = $_SESSION['auth']['model'];
 
         return $model::find($_SESSION['auth']['id'], [
-            'username', 'email'
+            'username', 'email', 'id'
         ]);
     }
 
@@ -66,4 +66,10 @@ class AuthService
     {
         session_destroy();
     }
+
+    public static function userId()
+    {
+        return $_SESSION['auth']['id'];
+    }
+
 }

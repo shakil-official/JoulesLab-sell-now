@@ -24,6 +24,13 @@ abstract class Controller
      */
     protected function render(string $template, array $data = []): void
     {
+        $flashData = [
+            'success' => \App\Core\Config\Helper::getMessage('success'),
+            'error'   => \App\Core\Config\Helper::getMessage('error'),
+        ];
+
+        $data = array_merge($data, $flashData);
+
         $this->view->render($template, $data);
 
         // Clear messages after passing

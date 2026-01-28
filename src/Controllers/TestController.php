@@ -4,7 +4,7 @@ namespace App\Controllers;
 
 use App\Core\Controller\Controller;
 use App\Core\Route\Request;
-use App\Models\Product;
+use SellNow\Models\Product;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;

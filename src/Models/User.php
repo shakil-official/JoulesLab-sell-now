@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models;
+namespace SellNow\Models;
 
 use App\Core\Contracts\Authenticatable;
 use App\Core\Database\Model;

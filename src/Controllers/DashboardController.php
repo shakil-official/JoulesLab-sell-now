@@ -2,6 +2,7 @@
 
 namespace SellNow\Controllers;
 
+use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
 use App\Core\Services\AuthService;
 use Twig\Error\LoaderError;
@@ -20,7 +21,9 @@ class DashboardController extends Controller
         $auth = AuthService::user();
 
         $this->render('dashboard', [
-            'username' => $auth['username']
+            'username' => $auth['username'],
+            'success' => Helper::getMessage('success'),
+            'error' => Helper::getMessage('error'),
         ]);
     }
 }

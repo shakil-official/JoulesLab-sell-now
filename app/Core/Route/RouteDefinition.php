@@ -17,6 +17,9 @@ class RouteDefinition
     public function url(string $uri): self
     {
         $this->definition['uri'] = $uri;
+        preg_match_all('#\{([^}]+)\}#', $uri, $matches);
+        $this->definition['params'] = $matches[1] ?? [];
+
         return $this;
     }
 
@@ -36,7 +39,8 @@ class RouteDefinition
             $this->httpMethod,
             $this->definition['uri'],
             $this->definition['controller'],
-            $method
+            $method,
+            $this->definition['params'] ?? []
         );
     }
 }

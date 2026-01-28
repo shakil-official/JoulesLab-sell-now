@@ -21,13 +21,16 @@ class Router
         string $httpMethod,
         string $uri,
         string $controller,
-        string $action
+        string $action,
+        array $params = [],
+
     ): void
     {
         $this->routes[$httpMethod][] = [
             'pattern' => $this->toRegex($uri),
             'controller' => $controller,
             'action' => $action,
+            'params'     => $params,
         ];
     }
 
@@ -50,16 +53,20 @@ class Router
         foreach ($this->routes[$method] ?? [] as $route) {
             if (preg_match($route['pattern'], $uri, $matches)) {
 
-                array_shift($matches);
+                array_shift($matches); // remove full match
 
-                //var_dump($route);
-                //$controller = new $route['controller']; // old one
+                $paramNames = $route['params'] ?? [];
+                $params = [];
+                foreach ($paramNames as $i => $name) {
+                    $params[$name] = $matches[$i] ?? null;
+                }
+
+                $request->setRouteParams($params);
+
                 $controller = new $route['controller']($this->view);
 
-                call_user_func_array(
-                    [$controller, $route['action']],
-                    array_merge([$request], $matches)
-                );
+                call_user_func_array([$controller, $route['action']], [$request]);
+
                 return;
             }
         }
@@ -67,4 +74,5 @@ class Router
         http_response_code(404);
         $this->view->render("errors/404");
     }
+
 }

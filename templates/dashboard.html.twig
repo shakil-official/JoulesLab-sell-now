@@ -4,11 +4,23 @@
 <h1>Dashboard</h1>
 <p>Welcome back, {{ username }}!</p>
 
+
+
 <div class="row">
     <div class="col-md-4">
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title">My Products</h5>
+
+                {% if success %}
+                    <div class="alert alert-success">{{ success }}</div>
+                {% endif %}
+
+                {% if error %}
+                    <div class="alert alert-danger">{{ error }}</div>
+                {% endif %}
+
+
                 <p>Manage your digital goods.</p>
                 <a href="/products/add" class="btn btn-primary">Add New Product</a>
                 <!-- List products here later using jQuery or backend loop -->
@@ -32,7 +44,7 @@
             <div class="card-body">
                 <h5 class="card-title">Your Public Page</h5>
                 <!-- Inconsistent: hardcoded link structure -->
-                <a href="/{{ username }}" target="_blank" class="btn btn-outline-info">View Shop</a>
+                <a href="/products" target="_blank" class="btn btn-outline-info">View Shop</a>
             </div>
         </div>
     </div>

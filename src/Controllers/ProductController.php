@@ -2,7 +2,11 @@
 
 namespace SellNow\Controllers;
 
+use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
+use App\Core\Route\Request;
+use JetBrains\PhpStorm\NoReturn;
+use SellNow\Services\Product\ProductService;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -16,47 +20,31 @@ class ProductController extends Controller
      */
     public function index(): void
     {
-        $this->render('products/add');
+        $this->render('products/add', []);
     }
 
-    public function store()
+    #[NoReturn]
+    public function store(Request $request): void
     {
-        if (!isset($_SESSION['user_id']))
-            die("Unauthorized");
+        $title = $request->input('title') ?? '';
+        $price = $request->input('price') ?? '';
 
-        $title = $_POST['title'];
-        $price = $_POST['price'];
-        $slug = strtolower(str_replace(' ', '-', $title)) . '-' . rand(1000, 9999);
-
-        $uploadDir = __DIR__ . '/../../public/uploads/';
-
-        $imagePath = '';
-        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-            $name = time() . '_' . $_FILES['image']['name'];
-            move_uploaded_file($_FILES['image']['tmp_name'], $uploadDir . $name);
-            $imagePath = 'uploads/' . $name;
+        if (!$title || !$price) {
+            Helper::redirect('/dashboard', [
+                'error' => 'Title and Price are required',
+            ]);
         }
 
-        $filePath = '';
-        if (isset($_FILES['product_file']['error']) && $_FILES['product_file']['error'] == 0) {
-            $name = time() . '_dl_' . $_FILES['product_file']['name'];
-            move_uploaded_file($_FILES['product_file']['tmp_name'], $uploadDir . $name);
-            $filePath = 'uploads/' . $name;
+        $product = (new ProductService())->create($title, $price);
+
+        if ($product) {
+            Helper::redirect('/dashboard', [
+                'success' => 'Product added successfully!'
+            ]);
         }
 
-        // Raw SQL
-        $sql = "INSERT INTO products (user_id, title, slug, price, image_path, file_path) VALUES (?, ?, ?, ?, ?, ?)";
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([
-            $_SESSION['user_id'],
-            $title,
-            $slug,
-            $price,
-            $imagePath,
-            $filePath
+        Helper::redirect('/dashboard', [
+            'error' => 'Failed to save product',
         ]);
-
-        header("Location: /dashboard");
-        exit;
     }
 }

@@ -4,6 +4,7 @@ namespace App\Core\Route;
 
 class Request
 {
+    protected array $routeParams = [];
     public function uri(): string
     {
         return '/' . trim(
@@ -17,8 +18,13 @@ class Request
         return $_SERVER['REQUEST_METHOD'];
     }
 
+    public function setRouteParams(array $params): void
+    {
+        $this->routeParams = $params;
+    }
+
     public function input(string $key, $default = null)
     {
-        return $_REQUEST[$key] ?? $default;
+        return $this->routeParams[$key] ?? $_REQUEST[$key] ?? $default;
     }
 }
