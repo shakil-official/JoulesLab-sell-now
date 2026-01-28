@@ -7,9 +7,10 @@
     <div class="col-md-8">
         <h4>Billing Details</h4>
         <form action="/checkout/process" method="POST" id="checkout-form">
+            <input type="hidden" name="csrf" value="{{ csrf() }}">
             <div class="mb-3">
-                <label>Full Name</label>
-                <input type="text" name="name" class="form-control" required>
+                <label for="name">Full Name</label>
+                <input type="text" name="name" class="form-control" required id="name">
             </div>
             
             <h4>Payment Method</h4>

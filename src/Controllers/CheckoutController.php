@@ -2,91 +2,172 @@
 
 namespace SellNow\Controllers;
 
-class CheckoutController
+use App\Core\Config\Helper;
+use App\Core\Controller\Controller;
+use App\Core\Route\Request;
+use App\Core\Services\AuthService;
+use SellNow\Services\Cart\CartService;
+use SellNow\Services\Payments\PaymentGatewayFactory;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+
+class CheckoutController extends Controller
 {
-    private $twig;
-    private $db;
-
-    public function __construct($twig, $db)
-    {
-        $this->twig = $twig;
-        $this->db = $db;
-    }
-
-    public function index()
+    /**
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
+    public function index(): void
     {
         $cart = $_SESSION['cart'] ?? [];
+
         if (empty($cart)) {
-            header("Location: /cart");
-            exit;
+            Helper::redirect('/cart', [
+                'error' => 'Cart is empty'
+            ]);
         }
 
-        $total = 0;
-        foreach ($cart as $item) {
-            $total += $item['price'] * $item['quantity'];
-        }
+        $total = (new CartService())->calculateTotal($cart);
 
-        $providers = ['Stripe', 'PayPal', 'Razorpay'];
-
-        echo $this->twig->render('checkout/index.html.twig', [
+        $_SESSION['order'] = [
             'total' => $total,
-            'providers' => $providers
+            'hash' => hash('sha256', serialize($cart)),
+        ];
+
+        $providers = array_map(
+            fn($g) => $g->name(),
+            PaymentGatewayFactory::all()
+        );
+
+        $this->render('checkout/index', [
+            'total' => $total,
+            'providers' => $providers,
         ]);
     }
 
-    public function process()
+
+
+    public function process(Request $request): void
     {
-        // Redirect to mock payment page instead of finishing
-        $provider = $_POST['provider'] ?? 'Unknown';
-
-        // Check cart not empty just in case
-        if (empty($_SESSION['cart'])) {
-            header("Location: /cart");
-            exit;
+        if (empty($_SESSION['cart']) || empty($_SESSION['order'])) {
+            Helper::redirect('/cart');
         }
 
-        // Calculate total again? Or pass it?
-        // Let's pass via query string (Insecure! Perfect for assessment)
-        $total = 0;
-        foreach ($_SESSION['cart'] as $item) {
-            $total += $item['price'] * $item['quantity'];
+        try {
+            $gateway = PaymentGatewayFactory::make(
+                $request->input('provider')
+            );
+        } catch (\Throwable) {
+            http_response_code(400);
+            exit('Invalid payment provider');
         }
 
-        header("Location: /payment?provider=$provider&total=$total");
+        /*
+         * Redirect to payment page
+         * users can modify the total amount
+         * for security reason we are not passing the total amount
+         * */
+
+        header('Location: /payment?provider=' . urlencode($gateway->name()));
         exit;
+
+
     }
 
-    public function payment()
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     */
+    public function payment(Request $request): void
     {
-        if (empty($_SESSION['cart'])) {
-            header("Location: /cart");
-            exit;
+
+        if (empty($_SESSION['cart']) || empty($_SESSION['order'])) {
+            Helper::redirect('/cart');
         }
 
-        $provider = $_GET['provider'] ?? 'Test';
-        $total = $_GET['total'] ?? 0;
+        // check
+        if (hash('sha256', serialize($_SESSION['cart'])) !== $_SESSION['order']['hash']) {
+            http_response_code(400);
+            exit('Order tampered');
+        }
 
-        echo $this->twig->render('checkout/payment.html.twig', [
-            'provider' => $provider,
-            'total' => $total
+        $provider = $request->input('provider');
+
+        try {
+            $gateway = PaymentGatewayFactory::make($provider);
+        } catch (\Throwable) {
+            http_response_code(400);
+            exit('Invalid payment provider');
+        }
+
+        $total = (new CartService())->calculateTotal($_SESSION['cart']);
+
+        $this->render('checkout/payment', [
+            'provider' => $gateway->name(),
+            'total' => $total,
         ]);
     }
 
-    public function success()
+    /**
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
+    public function success(Request $request): void
     {
-        $provider = $_POST['provider'] ?? 'Unknown';
 
-        $logFile = __DIR__ . '/../../storage/logs/transactions.log';
-        if (!is_dir(dirname($logFile)))
-            mkdir(dirname($logFile), 0777, true);
+        if (empty($_SESSION['cart']) || empty($_SESSION['order'])) {
+            Helper::redirect('/cart');
+        }
 
-        $data = date('Y-m-d H:i:s') . " - Order processed via $provider - User: " . ($_SESSION['user_id'] ?? 'Guest') . "\n";
-        file_put_contents($logFile, $data, FILE_APPEND);
+        $check = hash('sha256', serialize($_SESSION['cart'])) !== $_SESSION['order']['hash'];
 
-        unset($_SESSION['cart']);
 
-        echo $this->twig->render('layouts/base.html.twig', [
-            'content' => "<h1>Thank you for your purchase!</h1><p>Payment via $provider successful.</p><a href='/dashboard' class='btn btn-primary'>Go to Dashboard</a>"
+        if ($check) {
+            http_response_code(400);
+            exit('Order integrity violation');
+        }
+
+        try {
+            $gateway = PaymentGatewayFactory::make(
+                $request->input('provider')
+            );
+        } catch (\Throwable) {
+            http_response_code(400);
+            exit('Invalid payment provider');
+        }
+
+        $this->logTransaction($gateway->name());
+
+        session_regenerate_id(true);
+
+        unset($_SESSION['cart'], $_SESSION['order']);
+
+        CartService::clear();
+
+        $this->render('checkout/success', [
+            'provider' => $gateway->name(),
         ]);
+    }
+
+    private function logTransaction(string $provider): void
+    {
+        $logFile = __DIR__ . '/../../storage/logs/transactions.log';
+
+        if (!is_dir(dirname($logFile))) {
+            mkdir(dirname($logFile), 0755, true);
+        }
+
+        $entry = sprintf(
+            "%s - Payment via %s - User: %s\n",
+            date('Y-m-d H:i:s'),
+            $provider,
+            AuthService::userId() ?? 'Guest'
+        );
+
+        file_put_contents($logFile, $entry, FILE_APPEND | LOCK_EX);
     }
 }

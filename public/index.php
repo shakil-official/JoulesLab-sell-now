@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use App\Core\Config\Csrf;
 use App\Core\Database\Model;
 use SellNow\Config\Database;
 use Twig\Error\LoaderError;
@@ -16,6 +17,10 @@ session_start();
 $loader = new FilesystemLoader(__DIR__ . '/../templates');
 $twig = new Environment($loader, ['debug' => true]);
 $twig->addGlobal('session', $_SESSION);
+
+$twig->addFunction(new \Twig\TwigFunction('csrf', function () {
+    return Csrf::generate();
+}));
 
 
 /*

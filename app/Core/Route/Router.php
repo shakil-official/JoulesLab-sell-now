@@ -2,6 +2,7 @@
 
 namespace App\Core\Route;
 
+use App\Core\Config\Csrf;
 use App\Core\View\View;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -62,6 +63,17 @@ class Router
                 }
 
                 $request->setRouteParams($params);
+
+                if ($method === 'POST') {
+                    if (! Csrf::validate($request->input('csrf'))) {
+                        http_response_code(403);
+                        $this->view->render('errors/403');
+                        return;
+                    }
+
+                    Csrf::forget(); // one-time token
+                }
+
 
                 $controller = new $route['controller']($this->view);
 

@@ -47,7 +47,8 @@
             // Imperfection: No AJAX endpoint properly defined yet, will implement next
             $.post('/cart/add', {
                 product_id: id,
-                quantity: 1
+                quantity: 1,
+                csrf: "{{ csrf() }}"
             }, function(response) {
                 alert("Added to cart!");
                 // refresh page is ugly but works

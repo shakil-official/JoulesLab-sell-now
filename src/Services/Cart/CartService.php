@@ -80,4 +80,13 @@ class CartService
         $_SESSION['cart_count'] = 0;
     }
 
+    public function calculateTotal(array $cart): float
+    {
+        return array_reduce(
+            $cart,
+            fn ($sum, $item) => $sum + ($item['price'] * $item['quantity']),
+            0
+        );
+    }
+
 }

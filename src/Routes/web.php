@@ -5,6 +5,7 @@ use App\Controllers\TestController;
 use App\Core\Route\Route;
 use SellNow\Controllers\AuthController;
 use SellNow\Controllers\CartController;
+use SellNow\Controllers\CheckoutController;
 use SellNow\Controllers\DashboardController;
 use SellNow\Controllers\ProductController;
 use SellNow\Controllers\PublicController;
@@ -74,3 +75,27 @@ Route::get()
     ->url('/logout')
     ->controller(AuthController::class)
     ->method('logout');
+
+Route::get()
+    ->url('/checkout')
+    ->controller(CheckoutController::class)
+    ->method('index');
+
+Route::post()
+    ->url('/checkout/process')
+    ->controller(CheckoutController::class)
+    ->method('process');
+
+
+Route::get()
+    ->url('/payment')
+    ->controller(CheckoutController::class)
+    ->method('payment');
+
+
+Route::post()
+    ->url('/checkout/success')
+    ->controller(CheckoutController::class)
+    ->method('success');
+
+

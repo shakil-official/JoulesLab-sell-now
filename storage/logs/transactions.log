@@ -1,3 +1,7 @@
 2026-01-13 09:06:25 - Order processed via Stripe - User: 1
 2026-01-13 09:11:19 - Order processed via PayPal - User: 1
 2026-01-26 10:45:02 - Order processed via Stripe - User: 2
+2026-01-28 15:59:31 - Payment via Stripe - User: Guest
+2026-01-28 16:00:05 - Payment via PayPal - User: Guest
+2026-01-28 16:04:39 - Payment via PayPal - User: Guest
+2026-01-28 16:06:24 - Payment via Razorpay - User: 3
