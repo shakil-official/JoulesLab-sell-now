@@ -37,9 +37,60 @@ A platform where:
 
 ## Directory Structure
 
-- `public/`: Web root (index.php, uploads).
-- `src/`: Application classes (Controllers, Models, Config).
-- `templates/`: Twig views.
-- `database/`: Schema and SQLite file.
+```
+SellNow/
+├── app/
+│   └── Core/
+│       ├── Config/
+│       ├── Contracts/
+│       ├── Controller/
+│       ├── Database/
+│       ├── Route/
+│       ├── Services/
+│       └── View/
+├── src/
+│   ├── Contracts/
+│   │   └── PaymentGatewayInterface.php
+│   ├── Controllers/
+│   │   ├── AuthController.php
+│   │   ├── CartController.php
+│   │   ├── CheckoutController.php
+│   │   ├── DashboardController.php
+│   │   ├── ProductController.php
+│   │   ├── PublicController.php
+│   │   └── TestController.php
+│   ├── Middlewares/
+│   │   └── AuthMiddleware.php
+│   ├── Models/
+│   │   ├── Product.php
+│   │   └── User.php
+│   ├── Routes/
+│   │   └── web.php
+│   └── Services/
+│       ├── Cart/
+│       ├── Payments/
+│       │   ├── Gateways/
+│       │   │   ├── PayPalGateway.php
+│       │   │   ├── RazorpayGateway.php
+│       │   │   └── StripeGateway.php
+│       │   └── PaymentGatewayFactory.php
+│       └── Product/
+├── public/
+│   ├── index.php
+│   └── uploads/
+├── templates/
+│   ├── auth/
+│   ├── dashboard/
+│   ├── products/
+│   └── ...
+├── database/
+│   ├── database.sqlite
+│   └── schema.sql
+├── storage/
+│   └── logs/
+│       └── transactions.log
+├── composer.json
+├── composer.lock
+└── README.md
+```
 
-Good luck!

@@ -6,7 +6,6 @@ use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
 use App\Core\Route\Request;
 use Exception;
-use JetBrains\PhpStorm\NoReturn;
 use SellNow\Services\Cart\CartService;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -37,7 +36,6 @@ class CartController extends Controller
     /**
      * @throws Exception
      */
-    #[NoReturn]
     public function add(Request $request): void
     {
         $productId = (int)$request->input('product_id');
@@ -50,7 +48,6 @@ class CartController extends Controller
         exit;
     }
 
-    #[NoReturn]
     public function clear(): void
     {
         CartService::clear();
