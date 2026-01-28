@@ -8,6 +8,7 @@ use App\Core\Route\Request;
 use App\Core\Services\AuthService;
 use App\Models\User;
 use Exception;
+use JetBrains\PhpStorm\NoReturn;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
@@ -33,12 +34,23 @@ class AuthController extends Controller
     /**
      * @throws Exception
      */
+    #[NoReturn]
     public function login(Request $request): void
     {
-        $email = $request->input('email');
-        $password = $request->input('password');
+        $email = $request->input('email') ?? '';
+        $password = $request->input('password') ?? '';
 
-        //todo: validation need here
+        if (!$email || !$password) {
+            Helper::redirect('/', [
+                'error' => 'All fields are required',
+            ]);
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Helper::redirect('/', [
+                'error' => 'Invalid email'
+            ]);
+        }
 
         AuthService::use(User::class);
 
@@ -53,37 +65,64 @@ class AuthController extends Controller
             ]);
         }
 
-        Helper::redirect('login', [
+        Helper::redirect('/dashboard', [
             'success' => 'Login Successfully'
         ]);
     }
 
-    public function registerForm()
+    /**
+     * @throws RuntimeError
+     * @throws SyntaxError
+     * @throws LoaderError
+     */
+    public function registerForm(): void
     {
-        echo $this->twig->render('auth/register.html.twig');
+        $this->render('auth/register', [
+            'success' => Helper::getMessage('success'),
+            'error' => Helper::getMessage('error'),
+        ]);
     }
 
-    public function register()
+    public function register(Request $request): void
     {
-        if (empty($_POST['email']) || empty($_POST['password']))
-            die("Fill all fields");
+        $email = $request->input('email') ?? '';
+        $password = $request->input('password') ?? '';
+        $username = $request->input('username') ?? '';
+        $full_name = $request->input('fullname') ?? '';
 
-        // Raw SQL
-        $sql = "INSERT INTO users (email, username, Full_Name, password) VALUES (?, ?, ?, ?)";
-        $stmt = $this->db->prepare($sql);
-        try {
-            $stmt->execute([
-                $_POST['email'],
-                $_POST['username'],
-                $_POST['fullname'],
-                $_POST['password']
+        if (!$email || !$password || !$username || !$full_name) {
+            Helper::redirect('/register', [
+                'error' => 'All fields are required',
             ]);
-        } catch (Exception $e) {
-            die("Error registering: " . $e->getMessage());
         }
 
-        header("Location: /login?msg=Registered successfully");
-        exit;
+        $password = Helper::hashPassword($password);
+
+        try {
+
+            if (User::query()->where([
+                'email' => $email
+            ])->first()) {
+                Helper::redirect('/register', [
+                    'error' => 'User already exits!!',
+                ]);
+            }
+
+            User::create([
+                'email' => $email,
+                'username' => $username,
+                'full_name' => $full_name,
+                'password' => $password,
+            ]);
+        } catch (\Exception $e) {
+            Helper::redirect('/register', [
+                'error' => 'Registration failed',
+            ]);
+        }
+
+        Helper::redirect('/', [
+            'success' => 'Registered successfully. Please login.'
+        ]);
     }
 
     public function dashboard()

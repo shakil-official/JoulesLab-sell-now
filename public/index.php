@@ -71,7 +71,7 @@ switch ($uri) {
             $auth->loginForm();
         break;
 
-    case '/register':
+    case '/register/_____':
         require_once __DIR__ . '/../src/Controllers/AuthController.php';
         $auth = new \SellNow\Controllers\AuthController($twig, $db);
         if ($method === 'POST')
@@ -85,7 +85,7 @@ switch ($uri) {
         redirect('/');
         break;
 
-    case '/dashboard':
+    case '/daaashboard/_____':
         require_once __DIR__ . '/../src/Controllers/AuthController.php';
         $auth = new \SellNow\Controllers\AuthController($twig, $db);
         $auth->dashboard();

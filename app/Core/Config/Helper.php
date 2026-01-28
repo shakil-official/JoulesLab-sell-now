@@ -30,4 +30,12 @@ class Helper
 
         exit;
     }
+
+    public static function hashPassword($password): string
+    {
+        $option = [];
+
+        return password_hash($password, PASSWORD_DEFAULT, $option);
+    }
+
 }
