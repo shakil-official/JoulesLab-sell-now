@@ -24,6 +24,7 @@ class Router
         string $controller,
         string $action,
         array $params = [],
+        array $middlewares = []
 
     ): void
     {
@@ -32,6 +33,7 @@ class Router
             'controller' => $controller,
             'action' => $action,
             'params'     => $params,
+            'middlewares'     => $middlewares,
         ];
     }
 
@@ -72,6 +74,13 @@ class Router
                     }
 
                     Csrf::forget(); // one-time token
+                }
+
+                foreach ($route['middlewares'] ?? [] as $middlewareClass) {
+                    $middleware = new $middlewareClass();
+                    if (method_exists($middleware, 'handle')) {
+                        $middleware->handle($request);
+                    }
                 }
 
 

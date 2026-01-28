@@ -72,7 +72,7 @@ class AuthService
 
     public static function userId()
     {
-        return $_SESSION[self::SESSION_KEY]['id'];
+        return $_SESSION[self::SESSION_KEY]['id'] ?? null;
     }
 
 }

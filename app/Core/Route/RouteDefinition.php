@@ -12,6 +12,7 @@ class RouteDefinition
     {
         $this->httpMethod = $httpMethod;
         $this->router     = $router;
+        $this->definition['middlewares'] = [];
     }
 
     public function url(string $uri): self
@@ -40,7 +41,23 @@ class RouteDefinition
             $this->definition['uri'],
             $this->definition['controller'],
             $method,
-            $this->definition['params'] ?? []
+            $this->definition['params'] ?? [],
+            $this->definition['middlewares'] ?? []
         );
     }
+
+    public function middleware(string|array $middleware): self
+    {
+        if (is_array($middleware)) {
+            $this->definition['middlewares'] = array_merge(
+                $this->definition['middlewares'],
+                $middleware
+            );
+        } else {
+            $this->definition['middlewares'][] = $middleware;
+        }
+
+        return $this;
+    }
+
 }
