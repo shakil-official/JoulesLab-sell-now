@@ -2,24 +2,21 @@
 
 namespace SellNow\Controllers;
 
-class ProductController
+use App\Core\Controller\Controller;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+
+class ProductController extends Controller
 {
-    private $twig;
-    private $db;
-
-    public function __construct($twig, $db)
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     */
+    public function index(): void
     {
-        $this->twig = $twig;
-        $this->db = $db;
-    }
-
-    public function create()
-    {
-        if (!isset($_SESSION['user_id'])) {
-            header("Location: /login");
-            exit;
-        }
-        echo $this->twig->render('products/add.html.twig');
+        $this->render('products/add');
     }
 
     public function store()
