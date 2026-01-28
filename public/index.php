@@ -25,7 +25,7 @@ use App\Core\Route\Request;
 use App\Core\View\View;
 
 Model::setConnection(
-    Database::getInstance()->getConnection()
+    \App\Core\Database\Database::getInstance()->getConnection()
 );
 
 $view = new View($twig);
@@ -58,7 +58,7 @@ function redirect($url)
 
 // Router
 switch ($uri) {
-    case '/':
+    case '/mmmmmmmmm':
         echo $twig->render('layouts/base.html.twig', ['content' => "<h1>Welcome</h1><a href='/login'>Login</a>"]);
         break;
 

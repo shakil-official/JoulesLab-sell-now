@@ -32,7 +32,7 @@ class Database
                     break;
 
                 default: // sqlite fallback
-                    $dbPath = __DIR__ . '/../../database/database.sqlite';
+                    $dbPath = __DIR__ . '/../../../database/database.sqlite';
                     $this->connection = new PDO("sqlite:" . $dbPath);
             }
 

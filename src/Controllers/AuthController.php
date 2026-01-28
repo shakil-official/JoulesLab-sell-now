@@ -2,25 +2,26 @@
 
 namespace SellNow\Controllers;
 
-class AuthController
+use App\Core\Controller\Controller;
+
+class AuthController  extends Controller
 {
-
-    // Imperfect: Manual dependency injection via constructor every time
-    private $twig;
-    private $db;
-
-    public function __construct($twig, $db)
+    public function loginView(): void
     {
-        $this->twig = $twig;
-        $this->db = $db;
+//        if (isset($_SESSION['user_id'])) {
+//            header("Location: /dashboard");
+//            exit;
+//        }
+
+
+        $this->render('auth/login', [
+
+        ]);
     }
 
     public function loginForm()
     {
-        if (isset($_SESSION['user_id'])) {
-            header("Location: /dashboard");
-            exit;
-        }
+
         echo $this->twig->render('auth/login.html.twig');
     }
 
