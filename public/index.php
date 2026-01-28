@@ -58,11 +58,11 @@ function redirect($url)
 
 // Router
 switch ($uri) {
-    case '/mmmmmmmmm':
+    case '/_____':
         echo $twig->render('layouts/base.html.twig', ['content' => "<h1>Welcome</h1><a href='/login'>Login</a>"]);
         break;
 
-    case '/login':
+    case '/login/_____':
         require_once __DIR__ . '/../src/Controllers/AuthController.php';
         $auth = new \SellNow\Controllers\AuthController($twig, $db);
         if ($method === 'POST')

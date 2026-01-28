@@ -2,17 +2,18 @@
 
 {% block title %}Login - SellNow{% endblock %}
 
-{% block content %}
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <h2>Login</h2>
 
-            <!-- Imperfect: using GET param directly -->
-            {% if get_error is defined %}
-                <!-- This won't work because I didn't pass it from controller properly yet,
-                     I passed it via URL param but didn't extract it to twig context.
-                     Candidates should spot this. -->
-                <div class="alert alert-danger">{{ get_error }}</div>
+{% block content %}
+    <div class="d-flex justify-content-center align-items-center vh-100">
+        <div class="col-md-6">
+            <h2 class="text-center mb-4">Login</h2>
+
+            {% if success %}
+                <div class="alert alert-success">{{ success }}</div>
+            {% endif %}
+
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
             {% endif %}
 
             <form action="/login" method="POST">
@@ -24,8 +25,9 @@
                     <label for="password">Password</label>
                     <input type="password" name="password" class="form-control" id="password" required>
                 </div>
-                <button type="submit" class="btn btn-primary">Login</button>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
             </form>
         </div>
     </div>
 {% endblock %}
+

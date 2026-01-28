@@ -25,6 +25,9 @@ abstract class Controller
     protected function render(string $template, array $data = []): void
     {
         $this->view->render($template, $data);
+
+        // Clear messages after passing
+        unset($_SESSION['_message']['success'], $_SESSION['_message']['error']);
     }
 
     #[NoReturn]

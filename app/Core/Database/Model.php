@@ -200,5 +200,4 @@ abstract class Model
         }
         return $this->table;
     }
-
 }

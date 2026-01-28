@@ -2,48 +2,60 @@
 
 namespace SellNow\Controllers;
 
+use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
+use App\Core\Route\Request;
+use App\Core\Services\AuthService;
+use App\Models\User;
+use Exception;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
 
-class AuthController  extends Controller
+class AuthController extends Controller
 {
+    /**
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     */
     public function loginView(): void
     {
-//        if (isset($_SESSION['user_id'])) {
-//            header("Location: /dashboard");
-//            exit;
-//        }
-
+        //todo: need redirect if login
 
         $this->render('auth/login', [
-
+            'success' => Helper::getMessage('success'),
+            'error' => Helper::getMessage('error'),
         ]);
     }
 
-    public function loginForm()
+
+    /**
+     * @throws Exception
+     */
+    public function login(Request $request): void
     {
+        $email = $request->input('email');
+        $password = $request->input('password');
 
-        echo $this->twig->render('auth/login.html.twig');
-    }
+        //todo: validation need here
 
-    public function login()
-    {
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
+        AuthService::use(User::class);
 
-        // Raw SQL, no Model
-        $stmt = $this->db->prepare("SELECT * FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $auth = AuthService::attempt([
+            'email' => $email,
+            'password' => $password,
+        ]);
 
-        if ($user && $password == $user['password']) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            header("Location: /dashboard");
-            exit;
-        } else {
-            header("Location: /login?error=Invalid credentials");
-            exit;
+        if (!$auth) {
+            Helper::redirect('/', [
+                'error' => 'Invalid credentials'
+            ]);
         }
+
+        Helper::redirect('login', [
+            'success' => 'Login Successfully'
+        ]);
     }
 
     public function registerForm()
@@ -66,7 +78,7 @@ class AuthController  extends Controller
                 $_POST['fullname'],
                 $_POST['password']
             ]);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             die("Error registering: " . $e->getMessage());
         }
 

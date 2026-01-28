@@ -9,9 +9,12 @@ Route::get()
     ->controller(TestController::class)
     ->method('index');
 
-
-
 Route::get()
     ->url('/')
     ->controller(\SellNow\Controllers\AuthController::class)
     ->method('loginView');
+
+Route::post()
+    ->url('/login')
+    ->controller(\SellNow\Controllers\AuthController::class)
+    ->method('login');
