@@ -14,6 +14,11 @@ use Twig\Error\RuntimeError;
 use Twig\Error\SyntaxError;
 use Twig\Loader\FilesystemLoader;
 
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 
 // Basic Twig Setup (Global-ish)
@@ -34,12 +39,15 @@ Model::setConnection(
 $view = new View($twig);
 
 $router = new Router($view);
+// $router->enableCache(); // Disable route caching for debugging
 Route::init($router);
 
 require __DIR__ . '/../src/Routes/web.php';
 
 try {
-    $router->dispatch(new Request());
+    $request = new Request();
+    $router->dispatch($request);
 } catch (LoaderError|RuntimeError|SyntaxError $e) {
+    var_dump($e);
 
 }

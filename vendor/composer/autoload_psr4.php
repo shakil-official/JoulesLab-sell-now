@@ -13,6 +13,7 @@ return array(
     'SellNow\\' => array($baseDir . '/src'),
     'PhpOption\\' => array($vendorDir . '/phpoption/phpoption/src/PhpOption'),
     'GrahamCampbell\\ResultType\\' => array($vendorDir . '/graham-campbell/result-type/src'),
+    'FastRoute\\' => array($vendorDir . '/nikic/fast-route/src'),
     'Dotenv\\' => array($vendorDir . '/vlucas/phpdotenv/src'),
     'App\\Models\\' => array($baseDir . '/src/Models'),
     'App\\Controllers\\' => array($baseDir . '/src/Controllers'),
