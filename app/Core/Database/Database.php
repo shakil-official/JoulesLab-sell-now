@@ -5,7 +5,6 @@ namespace App\Core\Database;
 use App\Core\Config\Env;
 use Illuminate\Database\Capsule\Manager as Capsule;
 use PDO;
-use PDOException;
 
 class Database
 {
@@ -21,35 +20,11 @@ class Database
         $username = Env::get('DB_USERNAME') ?? 'root';
         $password = Env::get('DB_PASSWORD') ?? '';
 
-        // Initialize PDO connection (for legacy compatibility)
-        $this->initializePdoConnection($driver, $host, $database, $username, $password);
-        
-        // Initialize Eloquent (for modern ORM)
+        // Initialize Eloquent (this also creates PDO connection)
         $this->initializeEloquent($driver, $host, $database, $username, $password);
-    }
-
-    private function initializePdoConnection(string $driver, string $host, string $database, string $username, string $password): void
-    {
-        try {
-            switch ($driver) {
-                case 'mysql':
-                    $this->connection = new PDO("mysql:host=" . ($host) . ";dbname=" . ($database), $username, $_ENV['DB_PASSWORD'] ?? '');
-                    break;
-
-                case 'pgsql':
-                    $this->connection = new PDO("pgsql:host=" . ($host) . ";dbname=" . ($database), $username, $password);
-                    break;
-
-                default: // sqlite fallback
-                    $dbPath = __DIR__ . '/../../../database/database.sqlite';
-                    $this->connection = new PDO("sqlite:" . $dbPath);
-            }
-
-            $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        } catch (PDOException $e) {
-            die("Database connection failed: " . $e->getMessage());
-        }
+        
+        // Get PDO connection from Eloquent (no need for separate initialization)
+        $this->connection = $this->capsule->getConnection()->getPdo();
     }
 
     private function initializeEloquent(string $driver, string $host, string $database, string $username, string $password): void
@@ -113,10 +88,5 @@ class Database
     public function getCapsule(): ?Capsule
     {
         return $this->capsule;
-    }
-
-    public function getEloquentConnection(): \Illuminate\Database\Connection
-    {
-        return $this->capsule?->getConnection();
     }
 }

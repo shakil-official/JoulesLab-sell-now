@@ -40,8 +40,8 @@ if (!$schema->hasTable('users')) {
 // Example: Create products table
 if (!$schema->hasTable('products')) {
     $schema->create('products', function (Blueprint $table) {
-        $table->id();
-        $table->string('name');
+        $table->id('product_id');
+        $table->string('title');
         $table->decimal('price', 10, 2);
         $table->text('description')->nullable();
         $table->foreignId('user_id')->constrained('users');

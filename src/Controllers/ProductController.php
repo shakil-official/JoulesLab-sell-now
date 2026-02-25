@@ -31,6 +31,7 @@ class ProductController extends Controller
 
         $product = (new ProductService())->create($title, $price);
 
+
         if ($product) {
             Helper::redirect('/dashboard', [
                 'success' => 'Product added successfully!'

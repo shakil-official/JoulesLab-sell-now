@@ -17,7 +17,7 @@ class ProductService
 
             $slug = Helper::slug($title);
 
-            Product::create([
+            $data = Product::query()->create([
                 'user_id' => AuthService::userId(),
                 'title' => $title,
                 'slug' => $slug,
@@ -25,7 +25,9 @@ class ProductService
                 'image_path' => $imagePath,
                 'file_path' => $filePath,
             ]);
+
         }catch (\Exception $exception){
+
             return false;
         }
 

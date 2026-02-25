@@ -9,6 +9,8 @@ use Exception;
 class User extends EloquentModel implements Authenticatable
 {
     protected $table = 'users';
+
+    public $timestamps = false;
     protected $fillable = ['username', 'email', 'password'];
     protected $hidden = ['password'];
 
