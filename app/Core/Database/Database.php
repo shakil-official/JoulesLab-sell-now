@@ -85,8 +85,5 @@ class Database
         return $this->connection;
     }
 
-    public function getCapsule(): ?Capsule
-    {
-        return $this->capsule;
-    }
+
 }

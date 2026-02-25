@@ -373,6 +373,202 @@ DB_USERNAME=root
 DB_PASSWORD=
 ```
 
+## 🛡️ Global Error Handling System
+
+### **🎯 Comprehensive Error Management**
+
+The application implements a **robust global error handling system** that catches and manages all types of errors gracefully:
+
+#### **📊 Error Handling Layers**
+
+1. **🚀 Application Level** (`Application::run()`)
+```php
+try {
+    $response = $this->legacyRouter->dispatch($request);
+    $this->emitResponse($response);
+} catch (Throwable $e) {
+    // Global error catch-all
+    $this->handleGlobalError($e);
+}
+```
+
+2. **🎯 Router Level** (`Router::dispatch()`)
+```php
+switch ($routeInfo[0]) {
+    case Dispatcher::NOT_FOUND:
+        // 404 Error handling
+        $handler = new ControllerRequestHandler(
+            'App\\Core\\Controller\\ErrorController',
+            'notFound',
+            $this->view,
+            $this->container
+        );
+        break;
+        
+    case Dispatcher::METHOD_NOT_ALLOWED:
+        // 405 Error handling
+        $handler = new ControllerRequestHandler(
+            'App\\Core\\Controller\\ErrorController',
+            'methodNotAllowed',
+            $this->view,
+            $this->container
+        );
+        break;
+}
+```
+
+3. **🎮 Controller Level** (`ErrorController`)
+```php
+class ErrorController extends Controller
+{
+    public function notFound(ServerRequestInterface $request): ResponseInterface
+    {
+        try {
+            return $this->render("errors/404", [
+                'uri' => $request->getUri()->getPath(),
+                'method' => $request->getMethod()
+            ]);
+        } catch (\Twig\Error\LoaderError $e) {
+            // Fallback error page
+            $factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+            $response = $factory->createResponse(404);
+            $response->getBody()->write('<!DOCTYPE html>
+<html>
+<head><title>404 - Page Not Found</title></head>
+<body>
+<h1>404 - Page Not Found</h1>
+<p>The requested page could not be found.</p>
+<p><a href="/">Go back to homepage</a></p>
+</body>
+</html>');
+            return $response;
+        }
+    }
+    
+    public function methodNotAllowed(ServerRequestInterface $request, array $allowedMethods): ResponseInterface
+    {
+        try {
+            return $this->render("errors/405", [
+                'uri' => $request->getUri()->getPath(),
+                'method' => $request->getMethod(),
+                'allowedMethods' => $allowedMethods
+            ]);
+        } catch (\Twig\Error\LoaderError $e) {
+            // Fallback error page
+            $factory = new \Nyholm\Psr7\Factory\Psr17Factory();
+            $response = $factory->createResponse(405);
+            $response = $response->withHeader('Allow', implode(', ', $allowedMethods));
+            $response->getBody()->write('<!DOCTYPE html>
+<html>
+<head><title>405 - Method Not Allowed</title></head>
+<body>
+<h1>405 - Method Not Allowed</h1>
+<p>The requested method is not allowed for this URL.</p>
+<p>Allowed methods: ' . implode(', ', $allowedMethods) . '</p>
+<p><a href="/">Go back to homepage</a></p>
+</body>
+</html>');
+            return $response;
+        }
+    }
+}
+```
+
+4. **🔧 Service Level** (Database, CSRF, etc.)
+```php
+// Database Connection Errors
+catch (PDOException $e) {
+    die("Database connection failed: " . $e->getMessage());
+}
+
+// CSRF Validation Errors
+if (!$this->csrfService->validate($csrfToken)) {
+    return $this->createErrorResponse(403);
+}
+```
+
+#### **🛡️ Error Types Handled**
+
+| Error Type | Handling Method | Response |
+|-------------|----------------|----------|
+| **404 Not Found** | Router → ErrorController | Custom 404 page |
+| **405 Method Not Allowed** | Router → ErrorController | Custom 405 page |
+| **403 Forbidden** | CSRF Validation | Error response |
+| **Database Errors** | Try-Catch | Error message |
+| **Template Errors** | ErrorController | Fallback HTML |
+| **Global Exceptions** | Application::run() | Error page |
+| **PHP Errors** | Error Reporting | Displayed in debug |
+
+#### **🔧 Configuration**
+
+```php
+// Error Reporting (Development)
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Error Logging (Production)
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../storage/logs/error.log');
+```
+
+#### **📝 Error Response Format**
+
+**Development Mode:**
+```php
+// Detailed error information
+throw new Exception("Database connection failed: " . $e->getMessage());
+```
+
+**Production Mode:**
+```php
+// User-friendly error pages
+return $this->render("errors/500", [
+    'message' => 'Something went wrong'
+]);
+```
+
+#### **🎯 Error Templates**
+
+```
+templates/errors/
+├── 📄 404.twig     # Page not found
+├── 📄 405.twig     # Method not allowed  
+├── 📄 500.twig     # Server error
+└── 📄 maintenance.twig  # Maintenance mode
+```
+
+#### **⚡ Error Handling Benefits**
+
+- **✅ Graceful Degradation** - Users see helpful error pages
+- **✅ Security** - No sensitive information leaked
+- **✅ Debugging** - Detailed errors in development
+- **✅ Logging** - All errors tracked
+- **✅ PSR Compliance** - Proper HTTP status codes
+- **✅ User Experience** - Professional error pages
+
+#### **🔄 Error Flow Example**
+
+```
+User Request → Router → Controller → Model
+     │           │         │        │
+     │           │         │        ▼
+     │           │         │   Database Error
+     │           │         │        │
+     │           │         │        ▼
+     │           │         │   Exception Thrown
+     │           │         │        │
+     │           │         │        ▼
+     │           │         │   Controller Catch
+     │           │         │        │
+     │           │         │        ▼
+     │           │         │   Error Response
+     │           │         │        │
+     ▼           ▼         ▼
+   404/405     Global     User Sees
+   Handling      Catch-All   Error Page
+```
+
 ## 🚀 Key Features
 
 ### ✅ **Enterprise Architecture**
