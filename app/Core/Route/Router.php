@@ -109,10 +109,10 @@ class Router
                 // Add API middleware classes here
             ],
             'auth' => [
-                // For now, empty - authentication will be handled in controllers
+                \App\Middlewares\AuthMiddleware::class,
             ],
             'guest' => [
-                // For now, empty - guest access will be handled in controllers
+                \App\Middlewares\GuestMiddleware::class,
             ],
         ];
     }
@@ -280,6 +280,9 @@ class Router
 
         // Try to handle with custom 405 controller if exists
         if (class_exists('App\\Core\\Controller\\ErrorController')) {
+            // Add allowed methods to request attributes
+            $request = $request->withAttribute('allowedMethods', $allowedMethods);
+            
             $handler = new ControllerRequestHandler(
                 'App\\Core\\Controller\\ErrorController',
                 'methodNotAllowed',

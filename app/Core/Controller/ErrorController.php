@@ -37,8 +37,13 @@ class ErrorController extends Controller
         }
     }
 
-    public function methodNotAllowed(ServerRequestInterface $request, array $allowedMethods): ResponseInterface
+    public function methodNotAllowed(ServerRequestInterface $request, array $allowedMethods = []): ResponseInterface
     {
+        // Try to get allowed methods from request attribute if not passed directly
+        if (empty($allowedMethods)) {
+            $allowedMethods = $request->getAttribute('allowedMethods', []);
+        }
+
         try {
             return $this->render("errors/405", [
                 'uri' => $request->getUri()->getPath(),

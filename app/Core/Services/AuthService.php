@@ -75,4 +75,14 @@ class AuthService
         return $_SESSION[self::SESSION_KEY]['id'] ?? null;
     }
 
+    public static function check(): bool
+    {
+        return isset($_SESSION[self::SESSION_KEY]);
+    }
+
+    public static function id(): ?int
+    {
+        return $_SESSION[self::SESSION_KEY]['id'] ?? null;
+    }
+
 }

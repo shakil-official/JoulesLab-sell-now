@@ -99,6 +99,7 @@ class Application
         $controllerNamespaces = [
             'App\\Controllers\\' => __DIR__ . '/../../app/Controllers',
             'SellNow\\Controllers\\' => __DIR__ . '/../../src/Controllers',
+            'App\\Core\\Controller\\' => __DIR__ . '/Controller',
         ];
 
         foreach ($controllerNamespaces as $namespace => $directory) {
