@@ -4,8 +4,13 @@ namespace App\Core\Config;
 
 
 
+use Random\RandomException;
+
 class Csrf
 {
+    /**
+     * @throws RandomException
+     */
     public static function generate(): string
     {
         if (empty($_SESSION['csrf'])) {

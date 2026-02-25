@@ -4,8 +4,9 @@ namespace SellNow\Controllers;
 
 use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
-use App\Core\Route\Request;
 use App\Core\Services\AuthService;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use SellNow\Services\Cart\CartService;
 use SellNow\Services\Payments\PaymentGatewayFactory;
 use Twig\Error\LoaderError;
@@ -19,7 +20,7 @@ class CheckoutController extends Controller
      * @throws SyntaxError
      * @throws LoaderError
      */
-    public function index(): void
+    public function index(): \Psr\Http\Message\ResponseInterface
     {
         $cart = $_SESSION['cart'] ?? [];
 
@@ -41,7 +42,7 @@ class CheckoutController extends Controller
             PaymentGatewayFactory::all()
         );
 
-        $this->render('checkout/index', [
+        return $this->render('checkout/index', [
             'total' => $total,
             'providers' => $providers,
         ]);
@@ -49,7 +50,7 @@ class CheckoutController extends Controller
 
 
 
-    public function process(Request $request): void
+    public function process(ServerRequestInterface $request): void
     {
         if (empty($_SESSION['cart']) || empty($_SESSION['order'])) {
             Helper::redirect('/cart');
@@ -57,7 +58,7 @@ class CheckoutController extends Controller
 
         try {
             $gateway = PaymentGatewayFactory::make(
-                $request->input('provider')
+                $this->getInput($request, 'provider')
             );
         } catch (\Throwable) {
             http_response_code(400);
@@ -77,11 +78,10 @@ class CheckoutController extends Controller
     }
 
     /**
-     * @throws SyntaxError
-     * @throws RuntimeError
-     * @throws LoaderError
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
      */
-    public function payment(Request $request): void
+    public function payment(ServerRequestInterface $request): \Psr\Http\Message\ResponseInterface
     {
 
         if (empty($_SESSION['cart']) || empty($_SESSION['order'])) {
@@ -94,7 +94,7 @@ class CheckoutController extends Controller
             exit('Order tampered');
         }
 
-        $provider = $request->input('provider');
+        $provider = $this->getInput($request, 'provider');
 
         try {
             $gateway = PaymentGatewayFactory::make($provider);
@@ -105,18 +105,16 @@ class CheckoutController extends Controller
 
         $total = (new CartService())->calculateTotal($_SESSION['cart']);
 
-        $this->render('checkout/payment', [
+        return $this->render('checkout/payment', [
             'provider' => $gateway->name(),
             'total' => $total,
         ]);
     }
 
     /**
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws LoaderError
+     * @param ServerRequestInterface $request
      */
-    public function success(Request $request): void
+    public function success(ServerRequestInterface $request): \Psr\Http\Message\ResponseInterface
     {
 
         if (empty($_SESSION['cart']) || empty($_SESSION['order'])) {
@@ -133,7 +131,7 @@ class CheckoutController extends Controller
 
         try {
             $gateway = PaymentGatewayFactory::make(
-                $request->input('provider')
+                $this->getInput($request, 'provider')
             );
         } catch (\Throwable) {
             http_response_code(400);
@@ -148,7 +146,7 @@ class CheckoutController extends Controller
 
         CartService::clear();
 
-        $this->render('checkout/success', [
+        return $this->render('checkout/success', [
             'provider' => $gateway->name(),
         ]);
     }

@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use App\Core\Controller\Controller;
-use App\Core\Route\Request;
+use Psr\Http\Message\ServerRequestInterface;
 use SellNow\Models\Product;
 use Twig\Error\LoaderError;
 use Twig\Error\RuntimeError;
@@ -14,35 +14,26 @@ class TestController extends Controller
     /**
      * @throws \Exception
      */
-    public function index(Request $request): void
+    public function index(ServerRequestInterface $request): \Psr\Http\Message\ResponseInterface
     {
-        $name = $request->input('name');
+        $name = $this->getInput($request, 'name', 'Test User');
 
-        Product::create([
-            'user_id' => 1,
-            'title' => 'test',
-            'slug' => 'test',
-            'description' => 'this is test',
-            'price' => 23,
-            'image_path' => 'hello/hh.png',
-            'file_path' => 'hello/hh.png',
-            'is_active' => 1
+        return $this->render('test/index', [
+            'name' => $name,
+            'message' => 'Hello from TestController!',
+            'timestamp' => date('Y-m-d H:i:s')
         ]);
+    }
 
-        $data = Product::query()
-            ->where([
+    public function multiMethod(ServerRequestInterface $request): \Psr\Http\Message\ResponseInterface
+    {
+        $method = $request->getMethod();
+        $name = $this->getInput($request, 'name', 'Multi Method Test');
 
-            ])->get();
-
-        echo '<pre>';
-        print_r($data);
-
-        try {
-            $this->render('test/index', [
-                'name' => $name
-            ]);
-        } catch (LoaderError|RuntimeError|SyntaxError $e) {
-
-        }
+        return $this->render('test/multi', [
+            'method' => $method,
+            'name' => $name,
+            'message' => 'This route handles multiple HTTP methods!'
+        ]);
     }
 }

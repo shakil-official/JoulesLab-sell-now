@@ -21,8 +21,19 @@ class View
      * @throws RuntimeError
      * @throws LoaderError
      */
-    public function render(string $view, array $data = []): void
+    public function render(string $view, array $data = []): string
     {
-        echo $this->twig->render($view . '.html.twig', $data);
+        return $this->twig->render($view . '.html.twig', $data);
+    }
+
+    /**
+     * Render and output content directly (for backward compatibility)
+     * @throws SyntaxError
+     * @throws RuntimeError
+     * @throws LoaderError
+     */
+    public function output(string $view, array $data = []): void
+    {
+        echo $this->render($view, $data);
     }
 }

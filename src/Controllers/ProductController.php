@@ -4,30 +4,24 @@ namespace SellNow\Controllers;
 
 use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
-use App\Core\Route\Request;
 use JetBrains\PhpStorm\NoReturn;
+use Psr\Http\Message\ServerRequestInterface;
 use SellNow\Services\Product\ProductService;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class ProductController extends Controller
 {
     /**
-     * @throws SyntaxError
-     * @throws RuntimeError
-     * @throws LoaderError
      */
-    public function index(): void
+    public function index(): \Psr\Http\Message\ResponseInterface
     {
-        $this->render('products/add', []);
+        return $this->render('products/add', []);
     }
 
     #[NoReturn]
-    public function store(Request $request): void
+    public function store(ServerRequestInterface $request): void
     {
-        $title = $request->input('title') ?? '';
-        $price = $request->input('price') ?? '';
+        $title = $this->getInput($request, 'title') ?? '';
+        $price = $this->getInput($request, 'price') ?? '';
 
         if (!$title || !$price) {
             Helper::redirect('/dashboard', [

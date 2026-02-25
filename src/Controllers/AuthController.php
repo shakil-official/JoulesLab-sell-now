@@ -4,10 +4,10 @@ namespace SellNow\Controllers;
 
 use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
-use App\Core\Route\Request;
 use App\Core\Services\AuthService;
 use Exception;
 use JetBrains\PhpStorm\NoReturn;
+use Psr\Http\Message\ServerRequestInterface;
 use SellNow\Models\User;
 use SellNow\Services\Cart\CartService;
 use Twig\Error\LoaderError;
@@ -21,11 +21,11 @@ class AuthController extends Controller
      * @throws RuntimeError
      * @throws LoaderError
      */
-    public function loginView(): void
+    public function loginView(): \Psr\Http\Message\ResponseInterface
     {
         //todo: need redirect if login
 
-        $this->render('auth/login', [
+        return $this->render('auth/login', [
             'success' => Helper::getMessage('success'),
             'error' => Helper::getMessage('error'),
         ]);
@@ -36,10 +36,10 @@ class AuthController extends Controller
      * @throws Exception
      */
     #[NoReturn]
-    public function login(Request $request): void
+    public function login(ServerRequestInterface $request): void
     {
-        $email = $request->input('email') ?? '';
-        $password = $request->input('password') ?? '';
+        $email = $this->getInput($request, 'email') ?? '';
+        $password = $this->getInput($request, 'password') ?? '';
 
         if (!$email || !$password) {
             Helper::redirect('/', [
@@ -76,20 +76,20 @@ class AuthController extends Controller
      * @throws SyntaxError
      * @throws LoaderError
      */
-    public function registerForm(): void
+    public function registerForm(): \Psr\Http\Message\ResponseInterface
     {
-        $this->render('auth/register', [
+        return $this->render('auth/register', [
             'success' => Helper::getMessage('success'),
             'error' => Helper::getMessage('error'),
         ]);
     }
 
-    public function register(Request $request): void
+    public function register(ServerRequestInterface $request): void
     {
-        $email = $request->input('email') ?? '';
-        $password = $request->input('password') ?? '';
-        $username = $request->input('username') ?? '';
-        $full_name = $request->input('fullname') ?? '';
+        $email = $this->getInput($request, 'email') ?? '';
+        $password = $this->getInput($request, 'password') ?? '';
+        $username = $this->getInput($request, 'username') ?? '';
+        $full_name = $this->getInput($request, 'fullname') ?? '';
 
         if (!$email || !$password || !$username || !$full_name) {
             Helper::redirect('/register', [

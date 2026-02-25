@@ -4,9 +4,9 @@ namespace SellNow\Controllers;
 
 use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
-use App\Core\Route\Request;
 use App\Core\Services\AuthService;
 use Exception;
+use Psr\Http\Message\ServerRequestInterface;
 use SellNow\Models\Product;
 
 class PublicController extends Controller
@@ -14,7 +14,7 @@ class PublicController extends Controller
     /**
      * @throws Exception
      */
-    public function profile(Request $request): void
+    public function profile(ServerRequestInterface $request): \Psr\Http\Message\ResponseInterface
     {
         $user = AuthService::user();
 
@@ -29,7 +29,7 @@ class PublicController extends Controller
                 'user_id' => $user['id']
             ])->get();
 
-        $this->render('public/profile', [
+        return $this->render('public/profile', [
             'seller' => $user,
             'products' => $products
         ]);

@@ -4,22 +4,17 @@ namespace SellNow\Controllers;
 
 use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
-use App\Core\Route\Request;
 use Exception;
+use JetBrains\PhpStorm\NoReturn;
+use Psr\Http\Message\ServerRequestInterface;
 use SellNow\Services\Cart\CartService;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
 
 class CartController extends Controller
 {
 
     /**
-     * @throws RuntimeError
-     * @throws SyntaxError
-     * @throws LoaderError
      */
-    public function index(): void
+    public function index(): \Psr\Http\Message\ResponseInterface
     {
         $cart = $_SESSION['cart'] ?? [];
         $total = 0;
@@ -27,7 +22,7 @@ class CartController extends Controller
             $total += $item['price'] * $item['quantity'];
         }
 
-        $this->render('cart/index', [
+        return $this->render('cart/index', [
             'cart' => $cart,
             'total' => $total
         ]);
@@ -36,10 +31,11 @@ class CartController extends Controller
     /**
      * @throws Exception
      */
-    public function add(Request $request): void
+    #[NoReturn]
+    public function add(ServerRequestInterface $request): void
     {
-        $productId = (int)$request->input('product_id');
-        $quantity = (int)$request->input('quantity', 1);
+        $productId = (int)$this->getInput($request, 'product_id');
+        $quantity = (int)$this->getInput($request, 'quantity', 1);
 
         $result = CartService::add($productId, $quantity);
 
@@ -48,6 +44,10 @@ class CartController extends Controller
         exit;
     }
 
+    /**
+     * @return void
+     */
+    #[NoReturn]
     public function clear(): void
     {
         CartService::clear();

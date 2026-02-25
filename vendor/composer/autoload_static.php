@@ -32,7 +32,15 @@ class ComposerStaticInit317800f5511949a3ddf5fba0946ab888
         ),
         'P' => 
         array (
+            'Psr\\Http\\Server\\' => 16,
+            'Psr\\Http\\Message\\' => 17,
+            'Psr\\Container\\' => 14,
             'PhpOption\\' => 10,
+        ),
+        'N' => 
+        array (
+            'Nyholm\\Psr7\\' => 12,
+            'Nyholm\\Psr7Server\\' => 18,
         ),
         'G' => 
         array (
@@ -48,8 +56,6 @@ class ComposerStaticInit317800f5511949a3ddf5fba0946ab888
         ),
         'A' => 
         array (
-            'App\\Models\\' => 11,
-            'App\\Controllers\\' => 16,
             'App\\' => 4,
         ),
     );
@@ -75,9 +81,31 @@ class ComposerStaticInit317800f5511949a3ddf5fba0946ab888
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),
+        'Psr\\Http\\Server\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-server-middleware/src',
+            1 => __DIR__ . '/..' . '/psr/http-server-handler/src',
+        ),
+        'Psr\\Http\\Message\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
+        ),
+        'Psr\\Container\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/container/src',
+        ),
         'PhpOption\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpoption/phpoption/src/PhpOption',
+        ),
+        'Nyholm\\Psr7\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/nyholm/psr7/src',
+        ),
+        'Nyholm\\Psr7Server\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/nyholm/psr7-server/src',
         ),
         'GrahamCampbell\\ResultType\\' => 
         array (
@@ -90,14 +118,6 @@ class ComposerStaticInit317800f5511949a3ddf5fba0946ab888
         'Dotenv\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/phpdotenv/src',
-        ),
-        'App\\Models\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/src/Models',
-        ),
-        'App\\Controllers\\' => 
-        array (
-            0 => __DIR__ . '/../..' . '/src/Controllers',
         ),
         'App\\' => 
         array (

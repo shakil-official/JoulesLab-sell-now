@@ -5,22 +5,18 @@ namespace SellNow\Controllers;
 use App\Core\Config\Helper;
 use App\Core\Controller\Controller;
 use App\Core\Services\AuthService;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
+use Psr\Http\Message\ResponseInterface;
 
 class DashboardController extends Controller
 {
     /**
-     * @throws SyntaxError
-     * @throws RuntimeError
-     * @throws LoaderError
+     * @return ResponseInterface
      */
-    public function index(): void
+    public function index(): \Psr\Http\Message\ResponseInterface
     {
         $auth = AuthService::user();
 
-        $this->render('dashboard', [
+        return $this->render('dashboard', [
             'username' => $auth['username'],
             'success' => Helper::getMessage('success'),
             'error' => Helper::getMessage('error'),

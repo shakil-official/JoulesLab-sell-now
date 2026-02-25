@@ -2,52 +2,41 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use App\Core\Config\Csrf;
-use App\Core\Database\Model;
-use App\Core\Route\Request;
-use App\Core\Route\Route;
-use App\Core\Route\Router;
-use App\Core\View\View;
-use Twig\Environment;
-use Twig\Error\LoaderError;
-use Twig\Error\RuntimeError;
-use Twig\Error\SyntaxError;
-use Twig\Loader\FilesystemLoader;
-
+use App\Core\Application;
+use Throwable;
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-session_start();
-
-// Basic Twig Setup (Global-ish)
-$loader = new FilesystemLoader(__DIR__ . '/../templates');
-$twig = new Environment($loader, ['debug' => true]);
-$twig->addGlobal('session', $_SESSION);
-
-$twig->addFunction(new \Twig\TwigFunction('csrf', function () {
-    return Csrf::generate();
-}));
-
-
-
-Model::setConnection(
-    \App\Core\Database\Database::getInstance()->getConnection()
-);
-
-$view = new View($twig);
-
-$router = new Router($view);
-// $router->enableCache(); // Disable route caching for debugging
-Route::init($router);
-
-require __DIR__ . '/../src/Routes/web.php';
-
 try {
-    $request = new Request();
-    $router->dispatch($request);
-} catch (LoaderError|RuntimeError|SyntaxError $e) {
-    var_dump($e);
+    // Initialize the application
+    $app = new Application();
 
+    // Load routes
+    require __DIR__ . '/../src/Routes/web.php';
+
+    // Run the application
+    $app->run();
+} catch (Throwable $e) {
+    // Handle all errors including fatal errors
+    http_response_code(500);
+    
+    if (ini_get('display_errors')) {
+        echo '<h1>Application Error</h1>';
+        echo '<h2>' . get_class($e) . '</h2>';
+        echo '<p><strong>Message:</strong> ' . htmlspecialchars($e->getMessage()) . '</p>';
+        echo '<p><strong>File:</strong> ' . htmlspecialchars($e->getFile()) . ':' . $e->getLine() . '</p>';
+        
+        if (ini_get('display_startup_errors')) {
+            echo '<h3>Stack Trace:</h3>';
+            echo '<pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
+        }
+    } else {
+        echo '<h1>500 Internal Server Error</h1>';
+        echo '<p>Something went wrong. Please try again later.</p>';
+    }
+    
+    // Log the error
+    error_log("Application Error: " . $e->getMessage() . " in " . $e->getFile() . ":" . $e->getLine());
 }

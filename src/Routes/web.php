@@ -8,7 +8,6 @@ use SellNow\Controllers\CheckoutController;
 use SellNow\Controllers\DashboardController;
 use SellNow\Controllers\ProductController;
 use SellNow\Controllers\PublicController;
-use SellNow\Middlewares\AuthMiddleware;
 
 // Authentication Routes (Guest)
 Route::group(['middleware' => 'guest'], function () {
@@ -87,16 +86,16 @@ Route::group(['middleware' => 'auth'], function () {
 });
 
 // API Routes (example)
-Route::prefix('/api', function () {
-    Route::group(['middleware' => 'api'], function () {
-        Route::get()->url('/products')->controller(PublicController::class)->name('api.products')->method('apiIndex');
-        Route::post()->url('/products')->controller(ProductController::class)->name('api.products.store')->method('apiStore');
-        Route::get()->url('/products/{id}')->controller(PublicController::class)
-            ->name('api.products.show')
-            ->where('id', '[0-9]+')
-            ->method('apiShow');
-    });
-});
+//Route::prefix('/api', function () {
+//    Route::group(['middleware' => 'api'], function () {
+//        Route::get()->url('/products')->controller(PublicController::class)->name('api.products')->method('apiIndex');
+//        Route::post()->url('/products')->controller(ProductController::class)->name('api.products.store')->method('apiStore');
+//        Route::get()->url('/products/{id}')->controller(PublicController::class)
+//            ->name('api.products.show')
+//            ->where('id', '[0-9]+')
+//            ->method('apiShow');
+//    });
+//});
 
 // Test Routes (for development)
 Route::prefix('/test', function () {

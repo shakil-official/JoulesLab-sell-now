@@ -2,11 +2,19 @@
 
 namespace App\Core\Route;
 
-use FastRoute\RouteCollector;
-use FastRoute\Dispatcher;
-use function FastRoute\simpleDispatcher;
-use App\Core\Config\Csrf;
+use App\Core\Container\Container;
+use App\Core\Http\ControllerRequestHandler;
+use App\Core\Http\MiddlewareHandler;
+use App\Core\Http\Request;
+use App\Core\Services\CsrfService;
 use App\Core\View\View;
+use Exception;
+use FastRoute\Dispatcher;
+use FastRoute\RouteCollector;
+use Nyholm\Psr7\Factory\Psr17Factory;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use function FastRoute\simpleDispatcher;
 
 class Router
 {
@@ -17,10 +25,14 @@ class Router
     protected array $routeCache = [];
     protected bool $cacheEnabled = false;
     protected string $cacheFile;
+    protected CsrfService $csrfService;
+    protected Container $container;
 
-    public function __construct(View $view, string $cacheFile = null)
+    public function __construct(View $view, CsrfService $csrfService, Container $container, ?string $cacheFile = null)
     {
         $this->view = $view;
+        $this->csrfService = $csrfService;
+        $this->container = $container;
         $this->cacheFile = $cacheFile ?? sys_get_temp_dir() . '/routes.cache';
         $this->loadMiddlewareGroups();
     }
@@ -58,7 +70,7 @@ class Router
             }
         }
 
-        // store route definition
+        // Store route definition
         // Handle comma-separated methods
         $methods = explode(',', $httpMethod);
         foreach ($methods as $method) {
@@ -74,7 +86,7 @@ class Router
                         'name' => $name,
                         'params' => $params,
                         'redirect' => $redirect,
-                        'view' => $view
+                        'view' => $view,
                     ]
                 ];
                 $this->routes[] = $route;
@@ -97,10 +109,10 @@ class Router
                 // Add API middleware classes here
             ],
             'auth' => [
-                // Add authentication middleware
+                // For now, empty - authentication will be handled in controllers
             ],
             'guest' => [
-                // Add guest middleware
+                // For now, empty - guest access will be handled in controllers
             ],
         ];
     }
@@ -167,7 +179,7 @@ class Router
         $data = [
             'dispatcher' => $this->dispatcher,
             'routes' => $this->routes,
-            'timestamp' => time()
+            'timestamp' => time(),
         ];
 
         file_put_contents($this->cacheFile, serialize($data));
@@ -213,140 +225,138 @@ class Router
     /**
      * @param Request $request
      */
-    public function dispatch(Request $request): void
+    public function dispatch(ServerRequestInterface $request): ResponseInterface
     {
         $this->buildDispatcher();
 
         $routeInfo = $this->dispatcher->dispatch(
-            $request->method(),
-            $request->uri()
+            $request->getMethod(),
+            $request->getUri()->getPath()
         );
 
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
-                $this->handleNotFound($request);
-                return;
+                return $this->handleNotFound($request);
 
             case Dispatcher::METHOD_NOT_ALLOWED:
-                $this->handleMethodNotAllowed($request, $routeInfo[1]);
-                return;
+                return $this->handleMethodNotAllowed($request, $routeInfo[1]);
 
             case Dispatcher::FOUND:
-                $this->handleFound($request, $routeInfo[1], $routeInfo[2]);
-                return;
+                return $this->handleFound($request, $routeInfo[1], $routeInfo[2]);
         }
     }
 
-    protected function handleNotFound(Request $request): void
+    protected function handleNotFound(ServerRequestInterface $request): ResponseInterface
     {
-        http_response_code(404);
-        
+        $factory = new Psr17Factory();
+        $response = $factory->createResponse(404);
+
         // Try to handle with custom 404 controller if exists
-        if (class_exists('App\\Controllers\\ErrorController')) {
-            $controller = new \App\Controllers\ErrorController($this->view);
-            $controller->notFound($request);
+        if (class_exists('App\\Core\\Controller\\ErrorController')) {
+            $handler = new ControllerRequestHandler(
+                'App\\Core\\Controller\\ErrorController',
+                'notFound',
+                $this->view,
+                $this->container
+            );
+            return $handler->handle($request);
         } else {
-            $this->view->render("errors/404");
+            try {
+                $content = $this->view->render('errors/404');
+                $response->getBody()->write($content);
+            } catch (Exception $e) {
+                $response->getBody()->write('<h1>404 - Not Found</h1>');
+            }
         }
+
+        return $response;
     }
 
-    protected function handleMethodNotAllowed(Request $request, array $allowedMethods): void
+    protected function handleMethodNotAllowed(ServerRequestInterface $request, array $allowedMethods): ResponseInterface
     {
-        http_response_code(405);
-        header('Allow: ' . implode(', ', $allowedMethods));
-        
+        $factory = new Psr17Factory();
+        $response = $factory->createResponse(405);
+        $response = $response->withHeader('Allow', implode(', ', $allowedMethods));
+
         // Try to handle with custom 405 controller if exists
-        if (class_exists('App\\Controllers\\ErrorController')) {
-            $controller = new \App\Controllers\ErrorController($this->view);
-            $controller->methodNotAllowed($request, $allowedMethods);
+        if (class_exists('App\\Core\\Controller\\ErrorController')) {
+            $handler = new ControllerRequestHandler(
+                'App\\Core\\Controller\\ErrorController',
+                'methodNotAllowed',
+                $this->view,
+                $this->container
+            );
+            return $handler->handle($request);
         } else {
-            echo "405 Method Not Allowed. Allowed methods: " . implode(', ', $allowedMethods);
+            $response->getBody()->write('405 Method Not Allowed. Allowed methods: ' . implode(', ', $allowedMethods));
         }
+
+        return $response;
     }
 
-    protected function handleFound(Request $request, array $handler, array $vars): void
+    /**
+     * @throws Exception
+     */
+    protected function handleFound(ServerRequestInterface $request, array $handler, array $vars): ResponseInterface
     {
-        // inject route params into Request
-        $request->setRouteParams($vars);
+        // Inject route params into Request
+        if ($request instanceof Request) {
+            $request->setRouteParams($vars);
+        } else {
+            // For PSR-7 requests, add as attribute
+            $request = $request->withAttribute('route_params', $vars);
+        }
 
         // CSRF validation for POST
-        if ($request->method() === 'POST') {
-            if (!Csrf::validate($request->input('csrf'))) {
-                http_response_code(403);
-                try {
-                    $this->view->render('errors/403');
-                } catch (\Twig\Error\LoaderError $e) {
-                    echo "<h1>403 - Forbidden</h1>";
-                    echo "<p>Invalid or missing CSRF token.</p>";
-                }
-                return;
-            }
-            Csrf::forget();
-        }
+        if ($request->getMethod() === 'POST') {
+            $data = $request->getParsedBody();
 
-        // run middleware
-        foreach ($handler['middlewares'] ?? [] as $middlewareClass) {
-            if (!class_exists($middlewareClass)) {
-                http_response_code(500);
-                echo "<h1>500 - Internal Server Error</h1>";
-                echo "<p>Middleware class not found: " . htmlspecialchars($middlewareClass) . "</p>";
-                return;
-            }
-
-            $middleware = new $middlewareClass();
-
-            if (!method_exists($middleware, 'handle')) {
-                http_response_code(500);
-                echo "<h1>500 - Internal Server Error</h1>";
-                echo "<p>Middleware " . htmlspecialchars($middlewareClass) . " must have a handle() method</p>";
-                return;
-            }
-
-            $result = $middleware->handle($request);
+            $csrfToken = is_array($data) ? ($data['csrf'] ?? null) : null;
             
-            // If middleware returns a response, stop processing
-            if ($result !== null) {
-                return;
+            if (!$this->csrfService->validate($csrfToken)) {
+                $factory = new Psr17Factory();
+                $response = $factory->createResponse(403);
+                $response->getBody()->write('<h1>403 - Forbidden</h1><p>Invalid or missing CSRF token.</p>');
+                return $response;
             }
+            $this->csrfService->forget();
         }
 
         // Handle special route types
         if (isset($handler['redirect'])) {
             [$destination, $status] = $handler['redirect'];
-            header("Location: {$destination}", true, $status);
-            return;
+            $factory = new Psr17Factory();
+            return $factory->createResponse($status)->withHeader('Location', $destination);
         }
 
         if (isset($handler['view'])) {
             [$view, $data] = $handler['view'];
+            $factory = new Psr17Factory();
+            $response = $factory->createResponse(200);
+            
             try {
-                $this->view->render($view, $data);
-            } catch (\Twig\Error\LoaderError $e) {
-                http_response_code(500);
-                echo "<h1>500 - Internal Server Error</h1>";
-                echo "<p>View template not found: " . htmlspecialchars($view) . "</p>";
+                $content = $this->view->render($view, $data);
+                $response->getBody()->write($content);
+            } catch (Exception $e) {
+                $response = $factory->createResponse(500);
+                $response->getBody()->write('View template not found: ' . htmlspecialchars($view));
             }
-            return;
+            
+            return $response;
         }
 
-        // create controller
-        if (!class_exists($handler['controller'])) {
-            http_response_code(500);
-            echo "<h1>500 - Internal Server Error</h1>";
-            echo "<p>Controller not found: " . htmlspecialchars($handler['controller']) . "</p>";
-            return;
-        }
+        // Create controller handler
+        $controllerHandler = new ControllerRequestHandler(
+            $handler['controller'],
+            $handler['action'],
+            $this->view,
+            $this->container
+        );
 
-        $controller = new $handler['controller']($this->view);
+        // Apply middleware
+        $middlewares = $handler['middlewares'] ?? [];
+        $middlewareHandler = new MiddlewareHandler($middlewares, $controllerHandler);
 
-        // call action
-        if (!method_exists($controller, $handler['action'])) {
-            http_response_code(500);
-            echo "<h1>500 - Internal Server Error</h1>";
-            echo "<p>Method " . htmlspecialchars($handler['action']) . " not found in " . htmlspecialchars($handler['controller']) . "</p>";
-            return;
-        }
-
-        call_user_func([$controller, $handler['action']], $request);
+        return $middlewareHandler->handle($request);
     }
 }
