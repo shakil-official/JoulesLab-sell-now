@@ -279,9 +279,98 @@ http://localhost:8000
         "psr/http-server-middleware": "^1.0",
         "psr/container": "^2.0",
         "nyholm/psr7": "^1.5",
-        "nyholm/psr7-server": "^1.0"
+        "nyholm/psr7-server": "^1.0",
+        "illuminate/database": "^12.53"
     }
 }
+```
+
+### **🆕 Laravel Eloquent Integration**
+
+The project now includes **Laravel Eloquent ORM** for powerful database operations:
+
+#### **✅ Features Available**
+- **📊 Query Builder**: Fluent SQL query building
+- **🔗 Relationships**: hasMany, belongsTo, hasOne, etc.
+- **📚 Collections**: Powerful data manipulation methods
+- **🛡️ Mass Assignment**: Secure model attribute handling
+- **⏰ Timestamps**: Automatic created_at/updated_at management
+- **🔄 Migrations**: Schema management capabilities
+
+#### **🎯 Usage Examples**
+```php
+// Basic Queries
+User::find(1);
+User::where('status', 'active')->get();
+Product::where('price', '>', 100)->orderBy('name')->get();
+
+// Relationships
+$user = User::with('products')->find(1);
+$userProducts = $user->products; // All user's products
+
+// Create Records
+User::create(['username' => 'john', 'email' => 'john@example.com']);
+
+// Advanced Queries
+Product::select(['name', 'price'])
+    ->where('category', 'electronics')
+    ->where('price', '>', 100)
+    ->orderBy('created_at', 'desc')
+    ->limit(10)
+    ->get();
+```
+
+#### **🏗️ Model Structure**
+```php
+// src/Models/User.php
+class User extends EloquentModel implements Authenticatable
+{
+    protected $fillable = ['username', 'email', 'password'];
+    protected $hidden = ['password'];
+    
+    public function products() {
+        return $this->hasMany(Product::class, 'user_id');
+    }
+}
+
+// src/Models/Product.php  
+class Product extends EloquentModel
+{
+    protected $fillable = ['name', 'price', 'description', 'user_id'];
+    
+    public function user() {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+}
+```
+
+#### **🔧 Database Configuration**
+The unified Database class handles both legacy PDO and modern Eloquent:
+
+```php
+// Automatic initialization
+$db = Database::getInstance();
+
+// Legacy PDO support
+$pdo = $db->getConnection();
+
+// Modern Eloquent support  
+$capsule = $db->getCapsule();
+```
+
+#### **📋 Supported Databases**
+- **✅ SQLite** (default)
+- **✅ MySQL** 
+- **✅ PostgreSQL**
+
+Configuration via environment variables:
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+# For MySQL/PostgreSQL:
+DB_HOST=127.0.0.1
+DB_USERNAME=root
+DB_PASSWORD=
 ```
 
 ## 🚀 Key Features
@@ -291,24 +380,36 @@ http://localhost:8000
 - 🌐 PSR-7 HTTP Message Implementation
 - 🎯 Advanced Routing with Middleware
 - 🎨 Twig Template Engine Integration
+- 🗄️ **Laravel Eloquent ORM** - Modern database operations
+
+### ✅ **Database Layer**
+- 📊 **Eloquent ORM** - Powerful query builder and relationships
+- 🔄 **Dual Support** - Both PDO and Eloquent available
+- 🔗 **Relationships** - hasMany, belongsTo, hasOne, etc.
+- 📚 **Collections** - Rich data manipulation methods
+- 🛡️ **Mass Assignment** - Secure model handling
+- ⏰ **Auto Timestamps** - created_at/updated_at management
 
 ### ✅ **Security Features**
 - 🛡️ CSRF Protection
 - 🔐 Session Management
 - 📝 Input Validation
 - 🔒 Secure File Uploads
+- 🚫 SQL Injection Protection (prepared statements)
 
 ### ✅ **Developer Experience**
 - 🔄 Hot Module Reloading
 - 📝 Comprehensive Error Handling
 - 🐛 Debug Mode
 - 📊 Logging System
+- 🎯 **IntelliSense Support** - Full type hints and return types
 
 ### ✅ **Business Features**
 - 🛒 Shopping Cart System
 - 💳 Multi-Gateway Payments
 - 👥 User Management
 - 📦 Product Catalog
+- 🏪 **E-commerce Ready**
 
 ## 🎯 Request Lifecycle Example
 
@@ -379,8 +480,12 @@ This project demonstrates:
 - ✅ **HTTP Standards** - PSR-7 messaging
 - ✅ **Security Best Practices** - CSRF, validation, sessions
 - ✅ **Clean Code** - SOLID principles applied
+- 🆕 **Eloquent ORM** - Modern database operations
+- 🆕 **Query Builder Patterns** - Fluent database interfaces
+- 🆕 **Model Relationships** - hasMany, belongsTo, etc.
+- 🆕 **Database Abstraction** - PDO + Eloquent dual support
 
 ---
 
-**🚀 Built with modern PHP best practices and full PSR compliance!**
+**🚀 Built with modern PHP best practices, full PSR compliance, and Laravel Eloquent ORM!**
 

@@ -3,13 +3,24 @@
 namespace SellNow\Models;
 
 use App\Core\Contracts\Authenticatable;
-use App\Core\Database\Model;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
 use Exception;
 
-class User extends Model implements Authenticatable
+class User extends EloquentModel implements Authenticatable
 {
-    protected string $table = 'users';
+    protected $table = 'users';
+    protected $fillable = ['username', 'email', 'password'];
+    protected $hidden = ['password'];
 
+    public static function find(int $id): ?self
+    {
+        try {
+            return static::query()->find($id);
+        } catch (Exception $e) {
+            // Fallback to basic query if there's an issue
+            return static::where('id', $id)->first();
+        }
+    }
 
     public function getAuthId(): int
     {
@@ -30,25 +41,17 @@ class User extends Model implements Authenticatable
             return null;
         }
 
-        $row = static::query()
-            ->where(['email' => $credentials['email']])
-            ->first(); // array
-
-        if (!$row) {
-            return null;
-        }
-
-        $user = new static();
-
-        foreach ($row as $key => $value) {
-            $user->$key = $value;
-        }
-
-        return $user;
+        return static::where('email', $credentials['email'])->first();
     }
 
     public function getUsername()
     {
         return $this->username;
+    }
+
+    // Relationships
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'user_id');
     }
 }

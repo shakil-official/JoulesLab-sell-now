@@ -25,7 +25,7 @@ class CartService
             ];
         }
 
-        $product = Product::select(['product_id', 'title', 'price'])
+        $product = Product::query()->select(['product_id', 'title', 'price'])
             ->where([
                 'product_id' => $productId,
                 'user_id' => AuthService::userId()

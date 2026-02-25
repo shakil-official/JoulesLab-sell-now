@@ -2,12 +2,17 @@
 
 namespace SellNow\Models;
 
-use App\Core\Database\Model;
+use Illuminate\Database\Eloquent\Model as EloquentModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Product extends Model
+class Product extends EloquentModel
 {
-    protected string $table = 'products';
+    protected $table = 'products';
+    protected $fillable = ['name', 'price', 'description', 'user_id', 'image_path', 'file_path'];
 
-
-
+    // Relationships
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
 }

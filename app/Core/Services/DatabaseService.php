@@ -3,7 +3,6 @@
 namespace App\Core\Services;
 
 use App\Core\Database\Database;
-use App\Core\Database\Model;
 
 class DatabaseService
 {
@@ -15,10 +14,5 @@ class DatabaseService
             $this->connection = Database::getInstance()->getConnection();
         }
         return $this->connection;
-    }
-
-    public function initializeModelConnection(): void
-    {
-        Model::setConnection($this->getConnection());
     }
 }

@@ -10,6 +10,7 @@ use App\Core\Route\Router;
 use App\Core\Services\CsrfService;
 use App\Core\Services\DatabaseService;
 use App\Core\View\View;
+use Illuminate\Database\Capsule\Manager as Capsule;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -32,6 +33,9 @@ class Application
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+        
+        // Initialize database connection first (before container)
+        \App\Core\Database\Database::getInstance();
         
         $this->container = new Container();
         $this->bootstrap();
@@ -137,7 +141,8 @@ class Application
     private function initializeServices(): void
     {
         // Initialize database connection using service
-        $this->container->get(DatabaseService::class)->initializeModelConnection();
+        // Database connection is now automatically handled by Database class
+        // No need to manually initialize Model connection anymore
 
         // Ensure CSRF token is always available using service
         $this->container->get(CsrfService::class)->generate();
